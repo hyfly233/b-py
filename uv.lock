@@ -203,6 +203,7 @@ dependencies = [
     { name = "d2l" },
     { name = "fastapi" },
     { name = "httpx" },
+    { name = "httpx-sse" },
     { name = "langchain-google-genai" },
     { name = "langgraph" },
     { name = "mysql-connector-python" },
@@ -229,6 +230,7 @@ requires-dist = [
     { name = "d2l", specifier = ">=0.17.0" },
     { name = "fastapi", specifier = ">=0.115.5" },
     { name = "httpx", specifier = ">=0.28.0" },
+    { name = "httpx-sse", specifier = ">=0.4.0" },
     { name = "langchain-google-genai", specifier = ">=2.1.2" },
     { name = "langgraph", specifier = ">=0.3.30" },
     { name = "mysql-connector-python", specifier = ">=9.2.0" },
@@ -733,6 +735,15 @@ dependencies = [
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/10/df/676b7cf674dd1bdc71a64ad393c89879f75e4a0ab8395165b498262ae106/httpx-0.28.0.tar.gz", hash = "sha256:0858d3bab51ba7e386637f22a61d8ccddaeec5f3fe4209da3a6168dbb91573e0", size = 141307 }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/8f/fb/a19866137577ba60c6d8b69498dc36be479b13ba454f691348ddf428f185/httpx-0.28.0-py3-none-any.whl", hash = "sha256:dc0b419a0cfeb6e8b34e85167c0da2671206f5095f1baa9663d23bcfd6b535fc", size = 73551 },
+]
+
+[[package]]
+name = "httpx-sse"
+version = "0.4.0"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/4c/60/8f4281fa9bbf3c8034fd54c0e7412e66edbab6bc74c4996bd616f8d0406e/httpx-sse-0.4.0.tar.gz", hash = "sha256:1e81a3a3070ce322add1d3529ed42eb5f70817f45ed6ec915ab753f961139721", size = 12624 }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e1/9b/a181f281f65d776426002f330c31849b86b31fc9d848db62e16f03ff739f/httpx_sse-0.4.0-py3-none-any.whl", hash = "sha256:f329af6eae57eaa2bdfd962b42524764af68075ea87370a2de920af5341e318f", size = 7819 },
 ]
 
 [[package]]
