@@ -27,6 +27,7 @@ dependencies = [
     "snmpclitools>=0.7.2",
     "sse-starlette>=2.2.1",
     "starlette>=0.41.3",
+    "streamlit>=1.44.1",
     "torch>=2.5.1",
     "torchvision>=0.20.1",
     "uvicorn>=0.32.1",
