@@ -24,6 +24,7 @@ dependencies = [
     "pydantic>=2.10.2",
     "pyhocon>=0.3.61",
     "pyinstaller>=6.11.1",
+    "pyjwt>=2.10.1",
     "pysnmplib>=5.0.24",
     "requests>=2.32.3",
     "snmpclitools>=0.7.2",

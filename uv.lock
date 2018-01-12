@@ -243,6 +243,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyhocon" },
     { name = "pyinstaller" },
+    { name = "pyjwt" },
     { name = "pysnmplib" },
     { name = "requests" },
     { name = "snmpclitools" },
@@ -275,6 +276,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.10.2" },
     { name = "pyhocon", specifier = ">=0.3.61" },
     { name = "pyinstaller", specifier = ">=6.11.1" },
+    { name = "pyjwt", specifier = ">=2.10.1" },
     { name = "pysnmplib", specifier = ">=5.0.24" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "snmpclitools", specifier = ">=0.7.2" },
@@ -2637,6 +2639,15 @@ dependencies = [
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/73/6a/9d0057e312b85fbd17a79e1c1955d115fd9bbc78b85bab757777c8ef2307/pyinstaller_hooks_contrib-2024.10.tar.gz", hash = "sha256:8a46655e5c5b0186b5e527399118a9b342f10513eb1425c483fa4f6d02e8800c", size = 140592 }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a9/64/445861ee7a5fd32874c0f6cfe8222aacc8feda22539332e0d8ff50dadec6/pyinstaller_hooks_contrib-2024.10-py3-none-any.whl", hash = "sha256:ad47db0e153683b4151e10d231cb91f2d93c85079e78d76d9e0f57ac6c8a5e10", size = 338417 },
+]
+
+[[package]]
+name = "pyjwt"
+version = "2.10.1"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e7/46/bd74733ff231675599650d3e47f361794b22ef3e3770998dda30d3b63726/pyjwt-2.10.1.tar.gz", hash = "sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953", size = 87785 }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/61/ad/689f02752eeec26aed679477e80e632ef1b682313be70793d798c1d5fc8f/PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb", size = 22997 },
 ]
 
 [[package]]
