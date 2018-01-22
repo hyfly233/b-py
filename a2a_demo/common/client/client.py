@@ -1,3 +1,5 @@
+from typing import Any
+
 from a2a_demo.common.types import AgentCard
 
 
@@ -9,3 +11,7 @@ class A2AClient:
             self.url = url
         else:
             raise ValueError("Must provide either agent_card or url")
+
+    async def send_task(self, payload: dict[str, Any]) -> SendTaskResponse:
+        request = SendTaskRequest(params=payload)
+        return SendTaskResponse(**await self._send_request(request))
