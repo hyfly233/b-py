@@ -3,7 +3,7 @@ from typing import Any
 
 import httpx
 
-from a2a_demo.common.types import AgentCard
+from a2a_demo.common.types import AgentCard, A2AClientHTTPError, A2AClientJSONError
 
 
 class A2AClient:
@@ -34,3 +34,17 @@ class A2AClient:
                     raise A2AClientJSONError(str(e)) from e
                 except httpx.RequestError as e:
                     raise A2AClientHTTPError(400, str(e)) from e
+
+    async def _send_request(self, request: JSONRPCRequest) -> dict[str, Any]:
+        async with httpx.AsyncClient() as client:
+            try:
+                # Image generation could take time, adding timeout
+                response = await client.post(
+                    self.url, json=request.model_dump(), timeout=30
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                raise A2AClientHTTPError(e.response.status_code, str(e)) from e
+            except json.JSONDecodeError as e:
+                raise A2AClientJSONError(str(e)) from e
