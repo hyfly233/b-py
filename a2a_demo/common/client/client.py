@@ -1,9 +1,10 @@
 import json
-from typing import Any
+from typing import Any, AsyncIterable
 
 import httpx
+from httpx_sse import connect_sse
 
-from a2a_demo.common.types import AgentCard, A2AClientHTTPError, A2AClientJSONError
+from a2a_demo.common.types import AgentCard, A2AClientHTTPError, A2AClientJSONError, JSONRPCRequest
 
 
 class A2AClient:
