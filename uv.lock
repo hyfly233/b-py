@@ -234,6 +234,7 @@ dependencies = [
     { name = "httpx" },
     { name = "httpx-sse" },
     { name = "jwcrypto" },
+    { name = "langchain" },
     { name = "langchain-google-genai" },
     { name = "langchain-ollama" },
     { name = "langgraph" },
@@ -268,6 +269,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.0" },
     { name = "httpx-sse", specifier = ">=0.4.0" },
     { name = "jwcrypto", specifier = ">=1.5.6" },
+    { name = "langchain", specifier = ">=0.3.23" },
     { name = "langchain-google-genai", specifier = ">=2.1.2" },
     { name = "langchain-ollama", specifier = ">=0.3.1" },
     { name = "langgraph", specifier = ">=0.3.30" },
@@ -1568,6 +1570,24 @@ wheels = [
 ]
 
 [[package]]
+name = "langchain"
+version = "0.3.23"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langchain-text-splitters" },
+    { name = "langsmith" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "sqlalchemy" },
+]
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/47/ea/b0de568ca17614d5c00275c4ca506af4139cc7c51d0418802b2447055c00/langchain-0.3.23.tar.gz", hash = "sha256:d95004afe8abebb52d51d6026270248da3f4b53d93e9bf699f76005e0c83ad34", size = 10225576 }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d4/49/6e933837da1931c9db745967282ff8bfff51bc3faec0eade846b12203b75/langchain-0.3.23-py3-none-any.whl", hash = "sha256:084f05ee7e80b7c3f378ebadd7309f2a37868ce2906fa0ae64365a67843ade3d", size = 1011778 },
+]
+
+[[package]]
 name = "langchain-core"
 version = "0.3.52"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
@@ -1611,6 +1631,18 @@ dependencies = [
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/54/39/32f61a775a85a4162fa1661894ab56f722cf69484bb0bd4cd3812c3bd762/langchain_ollama-0.3.1.tar.gz", hash = "sha256:d847d1bd6da280f7b2f667c98dc240d23f19c72315e0f01d7d05e78a60b42276", size = 20813 }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f1/e9/63fe4aaf5e648d3a152638aba28e9ee1c91e3eebfc216f8f8539a0f0b7f7/langchain_ollama-0.3.1-py3-none-any.whl", hash = "sha256:5b3e01b73014bf52d1b26d5bf920914583954ab12166b18b456da9906216904c", size = 20477 },
+]
+
+[[package]]
+name = "langchain-text-splitters"
+version = "0.3.8"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+dependencies = [
+    { name = "langchain-core" },
+]
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e7/ac/b4a25c5716bb0103b1515f1f52cc69ffb1035a5a225ee5afe3aed28bf57b/langchain_text_splitters-0.3.8.tar.gz", hash = "sha256:116d4b9f2a22dda357d0b79e30acf005c5518177971c66a9f1ab0edfdb0f912e", size = 42128 }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/8b/a3/3696ff2444658053c01b6b7443e761f28bb71217d82bb89137a978c5f66f/langchain_text_splitters-0.3.8-py3-none-any.whl", hash = "sha256:e75cc0f4ae58dcf07d9f18776400cf8ade27fadd4ff6d264df6278bb302f6f02", size = 32440 },
 ]
 
 [[package]]
