@@ -4,7 +4,8 @@ from typing import Any, AsyncIterable
 import httpx
 from httpx_sse import connect_sse
 
-from a2a_demo.common.types import AgentCard, A2AClientHTTPError, A2AClientJSONError, JSONRPCRequest
+from a2a_demo.common.types import AgentCard, A2AClientHTTPError, A2AClientJSONError, JSONRPCRequest, GetTaskRequest, \
+    GetTaskResponse, SendTaskStreamingResponse, SendTaskStreamingRequest, SendTaskRequest, SendTaskResponse
 
 
 class A2AClient:
@@ -49,3 +50,7 @@ class A2AClient:
                 raise A2AClientHTTPError(e.response.status_code, str(e)) from e
             except json.JSONDecodeError as e:
                 raise A2AClientJSONError(str(e)) from e
+
+    async def get_task(self, payload: dict[str, Any]) -> GetTaskResponse:
+        request = GetTaskRequest(params=payload)
+        return GetTaskResponse(**await self._send_request(request))
