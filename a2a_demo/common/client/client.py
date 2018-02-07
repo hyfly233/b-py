@@ -5,7 +5,8 @@ import httpx
 from httpx_sse import connect_sse
 
 from a2a_demo.common.types import AgentCard, A2AClientHTTPError, A2AClientJSONError, JSONRPCRequest, GetTaskRequest, \
-    GetTaskResponse, SendTaskStreamingResponse, SendTaskStreamingRequest, SendTaskRequest, SendTaskResponse
+    GetTaskResponse, SendTaskStreamingResponse, SendTaskStreamingRequest, SendTaskRequest, SendTaskResponse, \
+    CancelTaskResponse, CancelTaskRequest
 
 
 class A2AClient:
@@ -54,3 +55,7 @@ class A2AClient:
     async def get_task(self, payload: dict[str, Any]) -> GetTaskResponse:
         request = GetTaskRequest(params=payload)
         return GetTaskResponse(**await self._send_request(request))
+
+    async def cancel_task(self, payload: dict[str, Any]) -> CancelTaskResponse:
+        request = CancelTaskRequest(params=payload)
+        return CancelTaskResponse(**await self._send_request(request))
