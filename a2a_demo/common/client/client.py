@@ -6,7 +6,7 @@ from httpx_sse import connect_sse
 
 from a2a_demo.common.types import AgentCard, A2AClientHTTPError, A2AClientJSONError, JSONRPCRequest, GetTaskRequest, \
     GetTaskResponse, SendTaskStreamingResponse, SendTaskStreamingRequest, SendTaskRequest, SendTaskResponse, \
-    CancelTaskResponse, CancelTaskRequest
+    CancelTaskResponse, CancelTaskRequest, SetTaskPushNotificationResponse, SetTaskPushNotificationRequest
 
 
 class A2AClient:
@@ -59,3 +59,9 @@ class A2AClient:
     async def cancel_task(self, payload: dict[str, Any]) -> CancelTaskResponse:
         request = CancelTaskRequest(params=payload)
         return CancelTaskResponse(**await self._send_request(request))
+
+    async def set_task_callback(
+        self, payload: dict[str, Any]
+    ) -> SetTaskPushNotificationResponse:
+        request = SetTaskPushNotificationRequest(params=payload)
+        return SetTaskPushNotificationResponse(**await self._send_request(request))
