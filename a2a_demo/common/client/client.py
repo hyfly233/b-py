@@ -28,11 +28,13 @@ class A2AClient:
     ) -> AsyncIterable[SendTaskStreamingResponse]:
         request = SendTaskStreamingRequest(params=payload)
         with httpx.Client(timeout=None) as client:
+            # 使用上下文管理器确保客户端在使用后关闭
             with connect_sse(
                 client, "POST", self.url, json=request.model_dump()
             ) as event_source:
                 try:
                     for sse in event_source.iter_sse():
+                        # 解析 SSE 数据并返回 SendTaskStreamingResponse 对象
                         yield SendTaskStreamingResponse(**json.loads(sse.data))
                 except json.JSONDecodeError as e:
                     raise A2AClientJSONError(str(e)) from e
@@ -42,7 +44,7 @@ class A2AClient:
     async def _send_request(self, request: JSONRPCRequest) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:
-                # Image generation could take time, adding timeout
+                # timeout 设置为 30 秒，以处理可能需要较长时间的请求
                 response = await client.post(
                     self.url, json=request.model_dump(), timeout=30
                 )
