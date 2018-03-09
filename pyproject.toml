@@ -26,6 +26,7 @@ dependencies = [
     "openai>=1.78.1",
     "pandas>=2.2.3",
     "pillow>=11.2.1",
+    "pipeline>=0.1.0",
     "pydantic>=2.11.4",
     "pyhocon>=0.3.61",
     "pyinstaller>=6.13.0",
