@@ -40,6 +40,7 @@ dependencies = [
     "streamlit>=1.45.1",
     "torch>=2.7.0",
     "torchvision>=0.20.1",
+    "transformers>=4.51.3",
     "uvicorn>=0.34.2",
 ]
 
