@@ -38,6 +38,7 @@ dependencies = [
     "snmpclitools>=0.7.2",
     "starlette>=0.46.2",
     "streamlit>=1.45.1",
+    "timm>=1.0.15",
     "torch>=2.7.0",
     "torchvision>=0.20.1",
     "transformers>=4.51.3",
