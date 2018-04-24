@@ -18,3 +18,14 @@ class A2AServer:
         self.app.add_route(
             "/.well-known/agent.json", self._get_agent_card, methods=["GET"]
         )
+
+    def start(self):
+        if self.agent_card is None:
+            raise ValueError("agent_card is not defined")
+
+        if self.task_manager is None:
+            raise ValueError("request_handler is not defined")
+
+        import uvicorn
+
+        uvicorn.run(self.app, host=self.host, port=self.port)
