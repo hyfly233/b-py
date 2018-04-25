@@ -1,7 +1,9 @@
 import logging
 
-from a2a_demo.common.types import AgentCard
+from starlette.responses import JSONResponse
 
+from a2a_demo.common.types import AgentCard
+from starlette.requests import Request
 logger = logging.getLogger(__name__)
 
 
@@ -29,3 +31,6 @@ class A2AServer:
         import uvicorn
 
         uvicorn.run(self.app, host=self.host, port=self.port)
+
+    def _get_agent_card(self, request: Request) -> JSONResponse:
+        return JSONResponse(self.agent_card.model_dump(exclude_none=True))
