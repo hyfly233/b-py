@@ -1,9 +1,12 @@
+import json
 import logging
 
+from pydantic import ValidationError
 from starlette.responses import JSONResponse
 
 from a2a_demo.common.types import AgentCard, GetTaskRequest, A2ARequest, SendTaskRequest, SendTaskStreamingRequest, \
-    CancelTaskRequest, SetTaskPushNotificationRequest, GetTaskPushNotificationRequest, TaskResubscriptionRequest
+    CancelTaskRequest, SetTaskPushNotificationRequest, GetTaskPushNotificationRequest, TaskResubscriptionRequest, \
+    JSONParseError, InvalidRequestError, InternalError, JSONRPCResponse
 from starlette.requests import Request
 logger = logging.getLogger(__name__)
 
@@ -67,3 +70,15 @@ class A2AServer:
 
         except Exception as e:
             return self._handle_exception(e)
+
+    def _handle_exception(self, e: Exception) -> JSONResponse:
+        if isinstance(e, json.decoder.JSONDecodeError):
+            json_rpc_error = JSONParseError()
+        elif isinstance(e, ValidationError):
+            json_rpc_error = InvalidRequestError(data=json.loads(e.json()))
+        else:
+            logger.error(f"Unhandled exception: {e}")
+            json_rpc_error = InternalError()
+
+        response = JSONRPCResponse(id=None, error=json_rpc_error)
+        return JSONResponse(response.model_dump(exclude_none=True), status_code=400)
