@@ -1,11 +1,13 @@
+import asyncio
+import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import Union, AsyncIterable
+from typing import Union, AsyncIterable, List
 
 from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskRequest, CancelTaskResponse, \
     SendTaskRequest, SendTaskResponse, SendTaskStreamingRequest, SendTaskStreamingResponse, JSONRPCResponse, \
     SetTaskPushNotificationRequest, SetTaskPushNotificationResponse, GetTaskPushNotificationRequest, \
-    GetTaskPushNotificationResponse, TaskResubscriptionRequest
+    GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig
 
 logger = logging.getLogger(__name__)
 
@@ -45,3 +47,12 @@ class TaskManager(ABC):
             self, request: TaskResubscriptionRequest
     ) -> Union[AsyncIterable[SendTaskResponse], JSONRPCResponse]:
         pass
+
+
+class InMemoryTaskManager(TaskManager):
+    def __init__(self):
+        self.tasks: dict[str, Task] = {}
+        self.push_notification_infos: dict[str, PushNotificationConfig] = {}
+        self.lock = asyncio.Lock()
+        self.task_sse_subscribers: dict[str, List[asyncio.Queue]] = {}
+        self.subscriber_lock = asyncio.Lock()
