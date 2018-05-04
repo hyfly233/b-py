@@ -7,7 +7,8 @@ from typing import Union, AsyncIterable, List
 from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskRequest, CancelTaskResponse, \
     SendTaskRequest, SendTaskResponse, SendTaskStreamingRequest, SendTaskStreamingResponse, JSONRPCResponse, \
     SetTaskPushNotificationRequest, SetTaskPushNotificationResponse, GetTaskPushNotificationRequest, \
-    GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig
+    GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig, TaskQueryParams, \
+    TaskNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -56,3 +57,18 @@ class InMemoryTaskManager(TaskManager):
         self.lock = asyncio.Lock()
         self.task_sse_subscribers: dict[str, List[asyncio.Queue]] = {}
         self.subscriber_lock = asyncio.Lock()
+
+    async def on_get_task(self, request: GetTaskRequest) -> GetTaskResponse:
+        logger.info(f"Getting task {request.params.id}")
+        task_query_params: TaskQueryParams = request.params
+
+        async with self.lock:
+            task = self.tasks.get(task_query_params.id)
+            if task is None:
+                return GetTaskResponse(id=request.id, error=TaskNotFoundError())
+
+            task_result = self.append_task_history(
+                task, task_query_params.historyLength
+            )
+
+        return GetTaskResponse(id=request.id, result=task_result)
