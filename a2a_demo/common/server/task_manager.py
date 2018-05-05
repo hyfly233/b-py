@@ -8,7 +8,7 @@ from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskReq
     SendTaskRequest, SendTaskResponse, SendTaskStreamingRequest, SendTaskStreamingResponse, JSONRPCResponse, \
     SetTaskPushNotificationRequest, SetTaskPushNotificationResponse, GetTaskPushNotificationRequest, \
     GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig, TaskQueryParams, \
-    TaskNotFoundError
+    TaskNotFoundError, TaskIdParams, TaskNotCancelableError
 
 logger = logging.getLogger(__name__)
 
@@ -72,3 +72,18 @@ class InMemoryTaskManager(TaskManager):
             )
 
         return GetTaskResponse(id=request.id, result=task_result)
+
+    async def on_cancel_task(self, request: CancelTaskRequest) -> CancelTaskResponse:
+        logger.info(f"Cancelling task {request.params.id}")
+        task_id_params: TaskIdParams = request.params
+
+        async with self.lock:
+            task = self.tasks.get(task_id_params.id)
+            if task is None:
+                return CancelTaskResponse(id=request.id, error=TaskNotFoundError())
+
+        return CancelTaskResponse(id=request.id, error=TaskNotCancelableError())
+
+    @abstractmethod
+    async def on_send_task(self, request: SendTaskRequest) -> SendTaskResponse:
+        pass
