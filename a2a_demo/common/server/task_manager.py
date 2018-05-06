@@ -87,3 +87,9 @@ class InMemoryTaskManager(TaskManager):
     @abstractmethod
     async def on_send_task(self, request: SendTaskRequest) -> SendTaskResponse:
         pass
+
+    @abstractmethod
+    async def on_send_task_subscribe(
+        self, request: SendTaskStreamingRequest
+    ) -> Union[AsyncIterable[SendTaskStreamingResponse], JSONRPCResponse]:
+        pass
