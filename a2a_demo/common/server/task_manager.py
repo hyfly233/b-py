@@ -93,3 +93,13 @@ class InMemoryTaskManager(TaskManager):
         self, request: SendTaskStreamingRequest
     ) -> Union[AsyncIterable[SendTaskStreamingResponse], JSONRPCResponse]:
         pass
+
+    async def set_push_notification_info(self, task_id: str, notification_config: PushNotificationConfig):
+        async with self.lock:
+            task = self.tasks.get(task_id)
+            if task is None:
+                raise ValueError(f"Task not found for {task_id}")
+
+            self.push_notification_infos[task_id] = notification_config
+
+        return
