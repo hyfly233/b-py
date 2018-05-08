@@ -103,3 +103,13 @@ class InMemoryTaskManager(TaskManager):
             self.push_notification_infos[task_id] = notification_config
 
         return
+
+    async def get_push_notification_info(self, task_id: str) -> PushNotificationConfig:
+        async with self.lock:
+            task = self.tasks.get(task_id)
+            if task is None:
+                raise ValueError(f"Task not found for {task_id}")
+
+            return self.push_notification_infos[task_id]
+
+        return
