@@ -8,7 +8,7 @@ from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskReq
     SendTaskRequest, SendTaskResponse, SendTaskStreamingRequest, SendTaskStreamingResponse, JSONRPCResponse, \
     SetTaskPushNotificationRequest, SetTaskPushNotificationResponse, GetTaskPushNotificationRequest, \
     GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig, TaskQueryParams, \
-    TaskNotFoundError, TaskIdParams, TaskNotCancelableError
+    TaskNotFoundError, TaskIdParams, TaskNotCancelableError, InternalError, TaskPushNotificationConfig
 
 logger = logging.getLogger(__name__)
 
@@ -118,3 +118,22 @@ class InMemoryTaskManager(TaskManager):
         async with self.lock:
             return task_id in self.push_notification_infos
 
+    async def on_set_task_push_notification(
+            self, request: SetTaskPushNotificationRequest
+    ) -> SetTaskPushNotificationResponse:
+        logger.info(f"Setting task push notification {request.params.id}")
+        task_notification_params: TaskPushNotificationConfig = request.params
+
+        try:
+            await self.set_push_notification_info(task_notification_params.id,
+                                                  task_notification_params.pushNotificationConfig)
+        except Exception as e:
+            logger.error(f"Error while setting push notification info: {e}")
+            return JSONRPCResponse(
+                id=request.id,
+                error=InternalError(
+                    message="An error occurred while setting push notification info"
+                ),
+            )
+
+        return SetTaskPushNotificationResponse(id=request.id, result=task_notification_params)
