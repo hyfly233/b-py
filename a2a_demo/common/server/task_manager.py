@@ -137,3 +137,24 @@ class InMemoryTaskManager(TaskManager):
             )
 
         return SetTaskPushNotificationResponse(id=request.id, result=task_notification_params)
+
+    async def on_get_task_push_notification(
+            self, request: GetTaskPushNotificationRequest
+    ) -> GetTaskPushNotificationResponse:
+        logger.info(f"Getting task push notification {request.params.id}")
+        task_params: TaskIdParams = request.params
+
+        try:
+            notification_info = await self.get_push_notification_info(task_params.id)
+        except Exception as e:
+            logger.error(f"Error while getting push notification info: {e}")
+            return GetTaskPushNotificationResponse(
+                id=request.id,
+                error=InternalError(
+                    message="An error occurred while getting push notification info"
+                ),
+            )
+
+        return GetTaskPushNotificationResponse(id=request.id, result=TaskPushNotificationConfig(id=task_params.id,
+                                                                                                pushNotificationConfig=notification_info))
+
