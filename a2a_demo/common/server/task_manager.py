@@ -8,7 +8,8 @@ from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskReq
     SendTaskRequest, SendTaskResponse, SendTaskStreamingRequest, SendTaskStreamingResponse, JSONRPCResponse, \
     SetTaskPushNotificationRequest, SetTaskPushNotificationResponse, GetTaskPushNotificationRequest, \
     GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig, TaskQueryParams, \
-    TaskNotFoundError, TaskIdParams, TaskNotCancelableError, InternalError, TaskPushNotificationConfig
+    TaskNotFoundError, TaskIdParams, TaskNotCancelableError, InternalError, TaskPushNotificationConfig, TaskStatus, \
+    TaskState
 
 logger = logging.getLogger(__name__)
 
@@ -158,3 +159,20 @@ class InMemoryTaskManager(TaskManager):
         return GetTaskPushNotificationResponse(id=request.id, result=TaskPushNotificationConfig(id=task_params.id,
                                                                                                 pushNotificationConfig=notification_info))
 
+    async def upsert_task(self, task_send_params: TaskSendParams) -> Task:
+        logger.info(f"Upserting task {task_send_params.id}")
+        async with self.lock:
+            task = self.tasks.get(task_send_params.id)
+            if task is None:
+                task = Task(
+                    id=task_send_params.id,
+                    sessionId = task_send_params.sessionId,
+                    messages=[task_send_params.message],
+                    status=TaskStatus(state=TaskState.SUBMITTED),
+                    history=[task_send_params.message],
+                )
+                self.tasks[task_send_params.id] = task
+            else:
+                task.history.append(task_send_params.message)
+
+            return task
