@@ -9,7 +9,7 @@ from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskReq
     SetTaskPushNotificationRequest, SetTaskPushNotificationResponse, GetTaskPushNotificationRequest, \
     GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig, TaskQueryParams, \
     TaskNotFoundError, TaskIdParams, TaskNotCancelableError, InternalError, TaskPushNotificationConfig, TaskStatus, \
-    TaskState
+    TaskState, TaskSendParams
 
 logger = logging.getLogger(__name__)
 
