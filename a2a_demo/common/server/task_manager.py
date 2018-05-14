@@ -4,12 +4,13 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Union, AsyncIterable, List
 
+from a2a_demo.common.server.utils import new_not_implemented_error
 from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskRequest, CancelTaskResponse, \
     SendTaskRequest, SendTaskResponse, SendTaskStreamingRequest, SendTaskStreamingResponse, JSONRPCResponse, \
     SetTaskPushNotificationRequest, SetTaskPushNotificationResponse, GetTaskPushNotificationRequest, \
     GetTaskPushNotificationResponse, TaskResubscriptionRequest, Task, PushNotificationConfig, TaskQueryParams, \
     TaskNotFoundError, TaskIdParams, TaskNotCancelableError, InternalError, TaskPushNotificationConfig, TaskStatus, \
-    TaskState, TaskSendParams
+    TaskState, TaskSendParams, Artifact
 
 logger = logging.getLogger(__name__)
 
@@ -176,3 +177,32 @@ class InMemoryTaskManager(TaskManager):
                 task.history.append(task_send_params.message)
 
             return task
+
+
+    async def on_resubscribe_to_task(
+        self, request: TaskResubscriptionRequest
+    ) -> Union[AsyncIterable[SendTaskStreamingResponse], JSONRPCResponse]:
+        return new_not_implemented_error(request.id)
+
+    async def update_store(
+        self, task_id: str, status: TaskStatus, artifacts: list[Artifact]
+    ) -> Task:
+        async with self.lock:
+            try:
+                task = self.tasks[task_id]
+            except KeyError:
+                logger.error(f"Task {task_id} not found for updating the task")
+                raise ValueError(f"Task {task_id} not found")
+
+            task.status = status
+
+            if status.message is not None:
+                task.history.append(status.message)
+
+            if artifacts is not None:
+                if task.artifacts is None:
+                    task.artifacts = []
+                task.artifacts.extend(artifacts)
+
+            return task
+
