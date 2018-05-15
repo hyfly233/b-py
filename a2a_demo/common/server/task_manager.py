@@ -206,3 +206,11 @@ class InMemoryTaskManager(TaskManager):
 
             return task
 
+    def append_task_history(self, task: Task, historyLength: int | None):
+        new_task = task.model_copy()
+        if historyLength is not None and historyLength > 0:
+            new_task.history = new_task.history[-historyLength:]
+        else:
+            new_task.history = []
+
+        return new_task
