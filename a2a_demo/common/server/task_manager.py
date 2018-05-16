@@ -214,3 +214,42 @@ class InMemoryTaskManager(TaskManager):
             new_task.history = []
 
         return new_task
+
+    async def setup_sse_consumer(self, task_id: str, is_resubscribe: bool = False):
+        async with self.subscriber_lock:
+            if task_id not in self.task_sse_subscribers:
+                if is_resubscribe:
+                    raise ValueError("Task not found for resubscription")
+                else:
+                    self.task_sse_subscribers[task_id] = []
+
+            sse_event_queue = asyncio.Queue(maxsize=0)  # <=0 is unlimited
+            self.task_sse_subscribers[task_id].append(sse_event_queue)
+            return sse_event_queue
+
+    async def enqueue_events_for_sse(self, task_id, task_update_event):
+        async with self.subscriber_lock:
+            if task_id not in self.task_sse_subscribers:
+                return
+
+            current_subscribers = self.task_sse_subscribers[task_id]
+            for subscriber in current_subscribers:
+                await subscriber.put(task_update_event)
+
+    async def dequeue_events_for_sse(
+            self, request_id, task_id, sse_event_queue: asyncio.Queue
+    ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
+        try:
+            while True:
+                event = await sse_event_queue.get()
+                if isinstance(event, JSONRPCError):
+                    yield SendTaskStreamingResponse(id=request_id, error=event)
+                    break
+
+                yield SendTaskStreamingResponse(id=request_id, result=event)
+                if isinstance(event, TaskStatusUpdateEvent) and event.final:
+                    break
+        finally:
+            async with self.subscriber_lock:
+                if task_id in self.task_sse_subscribers:
+                    self.task_sse_subscribers[task_id].remove(sse_event_queue)
