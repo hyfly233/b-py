@@ -8,6 +8,7 @@ from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from a2a_demo.common.server import TaskManager
 from a2a_demo.common.types import AgentCard, GetTaskRequest, A2ARequest, SendTaskRequest, SendTaskStreamingRequest, \
     CancelTaskRequest, SetTaskPushNotificationRequest, GetTaskPushNotificationRequest, TaskResubscriptionRequest, \
     JSONParseError, InvalidRequestError, InternalError, JSONRPCResponse
