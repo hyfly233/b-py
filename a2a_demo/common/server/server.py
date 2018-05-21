@@ -49,6 +49,7 @@ class A2AServer:
             body = await request.json()
             json_rpc_request = A2ARequest.validate_python(body)
 
+            # 根据请求类型调用相应的处理函数
             if isinstance(json_rpc_request, GetTaskRequest):
                 result = await self.task_manager.on_get_task(json_rpc_request)
             elif isinstance(json_rpc_request, SendTaskRequest):

@@ -15,6 +15,10 @@ from a2a_demo.common.types import GetTaskRequest, GetTaskResponse, CancelTaskReq
 logger = logging.getLogger(__name__)
 
 class TaskManager(ABC):
+    """
+    管理任务的抽象类
+    """
+
     @abstractmethod
     async def on_get_task(self, request: GetTaskRequest) -> GetTaskResponse:
         pass
@@ -53,6 +57,9 @@ class TaskManager(ABC):
 
 
 class InMemoryTaskManager(TaskManager):
+    """
+    内存中任务管理器的实现
+    """
     def __init__(self):
         self.tasks: dict[str, Task] = {}
         self.push_notification_infos: dict[str, PushNotificationConfig] = {}
@@ -61,14 +68,22 @@ class InMemoryTaskManager(TaskManager):
         self.subscriber_lock = asyncio.Lock()
 
     async def on_get_task(self, request: GetTaskRequest) -> GetTaskResponse:
+        """
+        获取任务详情
+        :param request: 获取任务的请求
+        :return: 获取任务的响应
+        """
+
         logger.info(f"Getting task {request.params.id}")
         task_query_params: TaskQueryParams = request.params
 
+        # 加锁以确保线程安全
         async with self.lock:
             task = self.tasks.get(task_query_params.id)
             if task is None:
                 return GetTaskResponse(id=request.id, error=TaskNotFoundError())
 
+            # 添加任务历史记录
             task_result = self.append_task_history(
                 task, task_query_params.historyLength
             )
