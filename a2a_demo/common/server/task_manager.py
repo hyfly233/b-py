@@ -91,14 +91,22 @@ class InMemoryTaskManager(TaskManager):
         return GetTaskResponse(id=request.id, result=task_result)
 
     async def on_cancel_task(self, request: CancelTaskRequest) -> CancelTaskResponse:
+        """
+        取消任务
+        :param request: 取消任务的请求
+        :return: 取消任务的响应
+        """
         logger.info(f"Cancelling task {request.params.id}")
         task_id_params: TaskIdParams = request.params
 
+        # 加锁以确保线程安全
         async with self.lock:
             task = self.tasks.get(task_id_params.id)
             if task is None:
+                # 任务不存在
                 return CancelTaskResponse(id=request.id, error=TaskNotFoundError())
 
+        # 如果任务存在，尝试取消任务
         return CancelTaskResponse(id=request.id, error=TaskNotCancelableError())
 
     @abstractmethod
@@ -202,6 +210,13 @@ class InMemoryTaskManager(TaskManager):
     async def update_store(
         self, task_id: str, status: TaskStatus, artifacts: list[Artifact]
     ) -> Task:
+        """
+        更新任务状态和工件
+        :param task_id: 任务ID
+        :param status: 任务状态
+        :param artifacts: 工件列表
+        :return: 更新后的任务对象
+        """
         async with self.lock:
             try:
                 task = self.tasks[task_id]
