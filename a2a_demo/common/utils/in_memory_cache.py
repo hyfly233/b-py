@@ -4,9 +4,8 @@ from typing import Any, Dict, Optional
 
 
 class InMemoryCache:
-    """A thread-safe Singleton class to manage cache data.
-
-    Ensures only one instance of the cache exists across the application.
+    """
+    一个线程安全的单例类，用于管理缓存数据。确保整个应用程序中只有一个缓存实例
     """
 
     _instance: Optional["InMemoryCache"] = None
@@ -14,12 +13,11 @@ class InMemoryCache:
     _initialized: bool = False
 
     def __new__(cls):
-        """Override __new__ to control instance creation (Singleton pattern).
-
-        Uses a lock to ensure thread safety during the first instantiation.
-
+        """
+        重写 __new__ 来控制实例创建（单例模式）。
+        使用锁来确保首次实例化期间的线程安全。
         Returns:
-            The singleton instance of InMemoryCache.
+            InMemoryCache 的单例实例
         """
         if cls._instance is None:
             with cls._lock:
