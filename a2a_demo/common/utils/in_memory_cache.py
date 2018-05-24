@@ -26,10 +26,8 @@ class InMemoryCache:
         return cls._instance
 
     def __init__(self):
-        """Initialize the cache storage.
-
-        Uses a flag (_initialized) to ensure this logic runs only on the very first
-        creation of the singleton instance.
+        """
+        初始化缓存存储。使用标志 (_initialized) 确保此逻辑仅在单例实例首次创建时运行。
         """
         if not self._initialized:
             with self._lock:
@@ -41,12 +39,12 @@ class InMemoryCache:
                     self._initialized = True
 
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
-        """Set a key-value pair.
-
+        """
+        设置键值对
         Args:
-            key: The key for the data.
-            value: The data to store.
-            ttl: Time to live in seconds. If None, data will not expire.
+            key：数据的键。
+            value：要存储的数据。
+            ttl：生存时间（秒）。如果为 None，则数据不会过期。
         """
         with self._data_lock:
             self._cache_data[key] = value
