@@ -56,14 +56,14 @@ class InMemoryCache:
                     del self._ttl[key]
 
     def get(self, key: str, default: Any = None) -> Any:
-        """Get the value associated with a key.
-
+        """
+        获取与键关联的值
         Args:
-            key: The key for the data within the session.
-            default: The value to return if the session or key is not found.
+            key：会话中数据的键。
+            default：如果未找到会话或键，则返回的值。
 
         Returns:
-            The cached value, or the default value if not found.
+            缓存值，如果未找到则为默认值。
         """
         with self._data_lock:
             if key in self._ttl and time.time() > self._ttl[key]:
@@ -73,13 +73,13 @@ class InMemoryCache:
             return self._cache_data.get(key, default)
 
     def delete(self, key: str) -> None:
-        """Delete a specific key-value pair from a cache.
-
+        """
+        从缓存中删除特定的键值对
         Args:
-            key: The key to delete.
+            key: 删除键
 
         Returns:
-            True if the key was found and deleted, False otherwise.
+            如果找到并删除了该键，则为 True，否则为 False
         """
 
         with self._data_lock:
