@@ -91,10 +91,10 @@ class InMemoryCache:
             return False
 
     def clear(self) -> bool:
-        """Remove all data.
-
+        """
+        删除所有数据
         Returns:
-            True if the data was cleared, False otherwise.
+            如果数据已被清除，则为 True，否则为 False
         """
         with self._data_lock:
             self._cache_data.clear()
