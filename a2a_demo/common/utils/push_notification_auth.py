@@ -19,9 +19,8 @@ AUTH_HEADER_PREFIX = 'Bearer '
 
 class PushNotificationAuth:
     def _calculate_request_body_sha256(self, data: dict[str, Any]):
-        """Calculates the SHA256 hash of a request body.
-
-        This logic needs to be same for both the agent who signs the payload and the client verifier.
+        """
+        计算请求主体的 SHA256 哈希值。此逻辑对于签名有效负载的代理和客户端验证者来说必须相同。
         """
         body_str = json.dumps(
             data,
