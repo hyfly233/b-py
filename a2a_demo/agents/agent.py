@@ -2,6 +2,10 @@ import json
 import random
 from typing import Any, AsyncIterable, Dict, Optional
 
+from google.adk.artifacts import InMemoryArtifactService
+from google.adk.memory import InMemoryMemoryService
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
 
 request_ids = set()
 
@@ -95,3 +99,13 @@ class Test01Agent:
 
     SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
 
+    def __init__(self):
+        self._agent = self._build_agent()
+        self._user_id = "remote_agent"
+        self._runner = Runner(
+        app_name=self._agent.name,
+        agent=self._agent,
+        artifact_service=InMemoryArtifactService(),
+        session_service=InMemorySessionService(),
+        memory_service=InMemoryMemoryService(),
+    )
