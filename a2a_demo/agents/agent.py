@@ -1,6 +1,7 @@
 import json
 import random
-from typing import Any, AsyncIterable, Dict, Optional
+from google.genai import types
+from typing import Any, Optional
 
 from google.adk.artifacts import InMemoryArtifactService
 from google.adk.memory import InMemoryMemoryService
@@ -109,3 +110,24 @@ class Test01Agent:
         session_service=InMemorySessionService(),
         memory_service=InMemoryMemoryService(),
     )
+
+    def invoke(self, query, session_id) -> str:
+        session = self._runner.session_service.get_session(
+            app_name=self._agent.name, user_id=self._user_id, session_id=session_id
+        )
+        content = types.Content(
+            role="user", parts=[types.Part.from_text(text=query)]
+        )
+        if session is None:
+            session = self._runner.session_service.create_session(
+                app_name=self._agent.name,
+                user_id=self._user_id,
+                state={},
+                session_id=session_id,
+            )
+        events = list(self._runner.run(
+            user_id=self._user_id, session_id=session.id, new_message=content
+        ))
+        if not events or not events[-1].content or not events[-1].content.parts:
+            return ""
+        return "\n".join([p.text for p in events[-1].content.parts if p.text])
