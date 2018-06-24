@@ -1,12 +1,15 @@
 import json
 import random
-from google.genai import types
-from typing import Any, Optional
+from typing import Any, Optional, AsyncIterable, Dict
 
 from google.adk.artifacts import InMemoryArtifactService
 from google.adk.memory import InMemoryMemoryService
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
+from google.adk.tools import ToolContext
+from google.genai import types
+
+from agent.agent import OllamaAgent
 
 request_ids = set()
 
@@ -96,7 +99,7 @@ def reimburse(request_id: str) -> dict[str, Any]:
     return {"request_id": request_id, "status": "Error: Invalid request_id."}
   return {"request_id": request_id, "status": "approved"}
 
-class Test01Agent:
+class TestOllamaAgent:
 
     SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
 
@@ -131,3 +134,9 @@ class Test01Agent:
         if not events or not events[-1].content or not events[-1].content.parts:
             return ""
         return "\n".join([p.text for p in events[-1].content.parts if p.text])
+
+    async def stream(self, query, session_id) -> AsyncIterable[Dict[str, Any]]:
+        pass
+
+    def _build_agent(self) -> OllamaAgent:
+        pass
