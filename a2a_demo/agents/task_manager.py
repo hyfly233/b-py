@@ -1,11 +1,11 @@
 import json
-from typing import AsyncIterable
-
-from typing import Union
 import logging
+from typing import AsyncIterable
 
 from a2a_demo.agents.agent import TestOllamaAgent
 from a2a_demo.common.server import InMemoryTaskManager
+from a2a_demo.common.types import JSONRPCResponse, InternalError, SendTaskStreamingRequest, SendTaskStreamingResponse, \
+    TaskSendParams, TaskState, Artifact, Message, TaskStatus, TaskStatusUpdateEvent, TaskArtifactUpdateEvent
 
 logger = logging.getLogger(__name__)
 
