@@ -1,11 +1,12 @@
 import json
 import logging
-from typing import AsyncIterable
+from typing import AsyncIterable, Union
 
 from a2a_demo.agents.agent import TestOllamaAgent
-from a2a_demo.common.server import InMemoryTaskManager
+from a2a_demo.common.server import InMemoryTaskManager, utils
 from a2a_demo.common.types import JSONRPCResponse, InternalError, SendTaskStreamingRequest, SendTaskStreamingResponse, \
-    TaskSendParams, TaskState, Artifact, Message, TaskStatus, TaskStatusUpdateEvent, TaskArtifactUpdateEvent
+    TaskSendParams, TaskState, Artifact, Message, TaskStatus, TaskStatusUpdateEvent, TaskArtifactUpdateEvent, \
+    SendTaskRequest
 
 logger = logging.getLogger(__name__)
 
@@ -79,3 +80,16 @@ class AgentTaskManager(InMemoryTaskManager):
                 ),
             )
 
+    def _validate_request(
+            self, request: Union[SendTaskRequest, SendTaskStreamingRequest]
+    ) -> None:
+        task_send_params: TaskSendParams = request.params
+        if not utils.are_modalities_compatible(
+                task_send_params.acceptedOutputModes, TestOllamaAgent.SUPPORTED_CONTENT_TYPES
+        ):
+            logger.warning(
+                "Unsupported output mode. Received %s, Support %s",
+                task_send_params.acceptedOutputModes,
+                TestOllamaAgent.SUPPORTED_CONTENT_TYPES,
+            )
+            return utils.new_incompatible_types_error(request.id)
