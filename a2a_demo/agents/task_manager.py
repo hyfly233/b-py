@@ -93,3 +93,11 @@ class AgentTaskManager(InMemoryTaskManager):
                 TestOllamaAgent.SUPPORTED_CONTENT_TYPES,
             )
             return utils.new_incompatible_types_error(request.id)
+
+    async def on_send_task(self, request: SendTaskRequest) -> SendTaskResponse:
+        error = self._validate_request(request)
+        if error:
+            return error
+        await self.upsert_task(request.params)
+        return await self._invoke(request)
+
