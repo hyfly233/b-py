@@ -101,3 +101,11 @@ class AgentTaskManager(InMemoryTaskManager):
         await self.upsert_task(request.params)
         return await self._invoke(request)
 
+    async def on_send_task_subscribe(
+            self, request: SendTaskStreamingRequest
+    ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
+        error = self._validate_request(request)
+        if error:
+            return error
+        await self.upsert_task(request.params)
+        return self._stream_generator(request)
