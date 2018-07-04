@@ -6,7 +6,7 @@ from a2a_demo.agents.agent import TestOllamaAgent
 from a2a_demo.common.server import InMemoryTaskManager, utils
 from a2a_demo.common.types import JSONRPCResponse, InternalError, SendTaskStreamingRequest, SendTaskStreamingResponse, \
     TaskSendParams, TaskState, Artifact, Message, TaskStatus, TaskStatusUpdateEvent, TaskArtifactUpdateEvent, \
-    SendTaskRequest
+    SendTaskRequest, Task
 
 logger = logging.getLogger(__name__)
 
@@ -109,3 +109,21 @@ class AgentTaskManager(InMemoryTaskManager):
             return error
         await self.upsert_task(request.params)
         return self._stream_generator(request)
+
+    async def _update_store(
+            self, task_id: str, status: TaskStatus, artifacts: list[Artifact]
+    ) -> Task:
+        async with self.lock:
+            try:
+                task = self.tasks[task_id]
+            except KeyError:
+                logger.error(f"Task {task_id} not found for updating the task")
+                raise ValueError(f"Task {task_id} not found")
+            task.status = status
+            # if status.message is not None:
+            #    self.task_messages[task_id].append(status.message)
+            if artifacts is not None:
+                if task.artifacts is None:
+                    task.artifacts = []
+                task.artifacts.extend(artifacts)
+            return task
