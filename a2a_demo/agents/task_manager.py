@@ -6,7 +6,7 @@ from a2a_demo.agents.agent import TestOllamaAgent
 from a2a_demo.common.server import InMemoryTaskManager, utils
 from a2a_demo.common.types import JSONRPCResponse, InternalError, SendTaskStreamingRequest, SendTaskStreamingResponse, \
     TaskSendParams, TaskState, Artifact, Message, TaskStatus, TaskStatusUpdateEvent, TaskArtifactUpdateEvent, \
-    SendTaskRequest, Task
+    SendTaskRequest, Task, SendTaskResponse
 
 logger = logging.getLogger(__name__)
 
@@ -127,3 +127,23 @@ class AgentTaskManager(InMemoryTaskManager):
                     task.artifacts = []
                 task.artifacts.extend(artifacts)
             return task
+
+    async def _invoke(self, request: SendTaskRequest) -> SendTaskResponse:
+        task_send_params: TaskSendParams = request.params
+        query = self._get_user_query(task_send_params)
+        try:
+            result = self.agent.invoke(query, task_send_params.sessionId)
+        except Exception as e:
+            logger.error(f"Error invoking agent: {e}")
+            raise ValueError(f"Error invoking agent: {e}")
+        parts = [{"type": "text", "text": result}]
+        task_state = TaskState.INPUT_REQUIRED if "MISSING_INFO:" in result else TaskState.COMPLETED
+        task = await self._update_store(
+            task_send_params.id,
+            TaskStatus(
+                state=task_state, message=Message(role="agent", parts=parts)
+            ),
+            [Artifact(parts=parts)],
+        )
+        return SendTaskResponse(id=request.id, result=task)
+
