@@ -6,7 +6,7 @@ from a2a_demo.agents.agent import TestOllamaAgent
 from a2a_demo.common.server import InMemoryTaskManager, utils
 from a2a_demo.common.types import JSONRPCResponse, InternalError, SendTaskStreamingRequest, SendTaskStreamingResponse, \
     TaskSendParams, TaskState, Artifact, Message, TaskStatus, TaskStatusUpdateEvent, TaskArtifactUpdateEvent, \
-    SendTaskRequest, Task, SendTaskResponse
+    SendTaskRequest, Task, SendTaskResponse, TextPart
 
 logger = logging.getLogger(__name__)
 
@@ -147,3 +147,8 @@ class AgentTaskManager(InMemoryTaskManager):
         )
         return SendTaskResponse(id=request.id, result=task)
 
+    def _get_user_query(self, task_send_params: TaskSendParams) -> str:
+        part = task_send_params.message.parts[0]
+        if not isinstance(part, TextPart):
+            raise ValueError("Only text parts are supported")
+        return part.text
