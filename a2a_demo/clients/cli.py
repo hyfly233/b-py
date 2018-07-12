@@ -15,3 +15,6 @@ from uuid import uuid4
 @click.option("--push_notification_receiver", default="http://localhost:5000")
 async def cliMain(agent, session, history, use_push_notifications: bool, push_notification_receiver: str):
     pass
+
+if __name__ == "__main__":
+    asyncio.run(cliMain())
