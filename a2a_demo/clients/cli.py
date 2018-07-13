@@ -1,3 +1,5 @@
+from urllib import parse
+
 import asyncclick as click
 import asyncio
 import base64
@@ -5,6 +7,7 @@ import os
 import urllib
 from uuid import uuid4
 
+from a2a_demo.common.client import A2ACardResolver, A2AClient
 
 
 @click.command()
@@ -14,7 +17,46 @@ from uuid import uuid4
 @click.option("--use_push_notifications", default=False)
 @click.option("--push_notification_receiver", default="http://localhost:5000")
 async def cliMain(agent, session, history, use_push_notifications: bool, push_notification_receiver: str):
-    pass
+    card_resolver = A2ACardResolver(agent)
+    card = card_resolver.get_agent_card()
+
+    print("======= Agent Card ========")
+    print(card.model_dump_json(exclude_none=True))
+
+    notif_receiver_parsed = parse.urlparse(push_notification_receiver)
+    notification_receiver_host = notif_receiver_parsed.hostname
+    notification_receiver_port = notif_receiver_parsed.port
+
+    if use_push_notifications:
+        from push_notification_listener import PushNotificationListener
+        notification_receiver_auth = PushNotificationReceiverAuth()
+        await notification_receiver_auth.load_jwks(f"{agent}/.well-known/jwks.json")
+
+        push_notification_listener = PushNotificationListener(
+            host=notification_receiver_host,
+            port=notification_receiver_port,
+            notification_receiver_auth=notification_receiver_auth,
+        )
+        push_notification_listener.start()
+
+    client = A2AClient(agent_card=card)
+    if session == 0:
+        sessionId = uuid4().hex
+    else:
+        sessionId = session
+
+    continue_loop = True
+    streaming = card.capabilities.streaming
+
+    while continue_loop:
+        taskId = uuid4().hex
+        print("=========  starting a new task ======== ")
+        continue_loop = await completeTask(client, streaming, use_push_notifications, notification_receiver_host, notification_receiver_port, taskId, sessionId)
+
+        if history and continue_loop:
+            print("========= history ======== ")
+            task_response = await client.get_task({"id": taskId, "historyLength": 10})
+            print(task_response.model_dump_json(include={"result": {"history": True}}))
 
 if __name__ == "__main__":
     asyncio.run(cliMain())
