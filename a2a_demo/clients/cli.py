@@ -1,13 +1,14 @@
-from urllib import parse
-
-import asyncclick as click
 import asyncio
 import base64
 import os
-import urllib
+from urllib import parse
 from uuid import uuid4
 
+import asyncclick as click
+
 from a2a_demo.common.client import A2ACardResolver, A2AClient
+from a2a_demo.common.types import TaskState
+from a2a_demo.common.utils.push_notification_auth import PushNotificationReceiverAuth
 
 
 @click.command()
@@ -57,6 +58,87 @@ async def cliMain(agent, session, history, use_push_notifications: bool, push_no
             print("========= history ======== ")
             task_response = await client.get_task({"id": taskId, "historyLength": 10})
             print(task_response.model_dump_json(include={"result": {"history": True}}))
+
+
+async def completeTask(client: A2AClient, streaming, use_push_notifications: bool, notification_receiver_host: str,
+                       notification_receiver_port: int, taskId, sessionId):
+    prompt = click.prompt(
+        "\nWhat do you want to send to the agent? (:q or quit to exit)"
+    )
+    if prompt == ":q" or prompt == "quit":
+        return False
+
+    message = {
+        "role": "user",
+        "parts": [
+            {
+                "type": "text",
+                "text": prompt,
+            }
+        ]
+    }
+
+    file_path = click.prompt(
+        "Select a file path to attach? (press enter to skip)",
+        default="",
+        show_default=False,
+    )
+    if file_path and file_path.strip() != "":
+        with open(file_path, "rb") as f:
+            file_content = base64.b64encode(f.read()).decode('utf-8')
+            file_name = os.path.basename(file_path)
+
+        message["parts"].append(
+            {
+                "type": "file",
+                "file": {
+                    "name": file_name,
+                    "bytes": file_content,
+                }
+            }
+        )
+
+    payload = {
+        "id": taskId,
+        "sessionId": sessionId,
+        "acceptedOutputModes": ["text"],
+        "message": message,
+    }
+
+    if use_push_notifications:
+        payload["pushNotification"] = {
+            "url": f"http://{notification_receiver_host}:{notification_receiver_port}/notify",
+            "authentication": {
+                "schemes": ["bearer"],
+            },
+        }
+
+    taskResult = None
+    if streaming:
+        response_stream = client.send_task_streaming(payload)
+        async for result in response_stream:
+            print(f"stream event => {result.model_dump_json(exclude_none=True)}")
+        taskResult = await client.get_task({"id": taskId})
+    else:
+        taskResult = await client.send_task(payload)
+        print(f"\n{taskResult.model_dump_json(exclude_none=True)}")
+
+    ## if the result is that more input is required, loop again.
+    state = TaskState(taskResult.result.status.state)
+    if state.name == TaskState.INPUT_REQUIRED.name:
+        return await completeTask(
+            client,
+            streaming,
+            use_push_notifications,
+            notification_receiver_host,
+            notification_receiver_port,
+            taskId,
+            sessionId
+        )
+    else:
+        ## task is complete
+        return True
+
 
 if __name__ == "__main__":
     asyncio.run(cliMain())
