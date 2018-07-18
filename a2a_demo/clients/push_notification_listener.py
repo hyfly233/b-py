@@ -49,3 +49,13 @@ class PushNotificationListener():
         config = uvicorn.Config(self.app, host=self.host, port=self.port, log_level="critical")
         self.server = uvicorn.Server(config)
         await self.server.serve()
+
+    async def handle_validation_check(self, request: Request):
+        validation_token = request.query_params.get("validationToken")
+        print(f"\npush notification verification received => \n{validation_token}\n")
+
+        if not validation_token:
+            return Response(status_code=400)
+
+        return Response(content=validation_token, status_code=200)
+
