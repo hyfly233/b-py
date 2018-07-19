@@ -1,12 +1,10 @@
 import asyncio
 import threading
-
+import traceback
 
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import Response
-
-import traceback
 
 from a2a_demo.common.utils.push_notification_auth import PushNotificationReceiverAuth
 
@@ -59,3 +57,16 @@ class PushNotificationListener():
 
         return Response(content=validation_token, status_code=200)
 
+    async def handle_notification(self, request: Request):
+        data = await request.json()
+        try:
+            if not await self.notification_receiver_auth.verify_push_notification(request):
+                print("push notification verification failed")
+                return
+        except Exception as e:
+            print(f"error verifying push notification: {e}")
+            print(traceback.format_exc())
+            return
+
+        print(f"\npush notification received => \n{data}\n")
+        return Response(status_code=200)
