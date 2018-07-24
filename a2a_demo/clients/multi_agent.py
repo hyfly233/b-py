@@ -28,3 +28,12 @@ class HostAgent:
         for ra in self.list_remote_agents():
             agent_info.append(json.dumps(ra))
         self.agents = '\n'.join(agent_info)
+
+    def register_agent_card(self, card: AgentCard):
+        remote_connection = RemoteAgentConnections(card)
+        self.remote_agent_connections[card.name] = remote_connection
+        self.cards[card.name] = card
+        agent_info = []
+        for ra in self.list_remote_agents():
+            agent_info.append(json.dumps(ra))
+        self.agents = '\n'.join(agent_info)
