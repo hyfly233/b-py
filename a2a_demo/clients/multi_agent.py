@@ -1,6 +1,8 @@
 import json
 from typing import List
 
+from google.adk import Agent
+
 from a2a_demo.common.client import A2ACardResolver
 from a2a_demo.common.types import AgentCard
 
@@ -37,3 +39,20 @@ class HostAgent:
         for ra in self.list_remote_agents():
             agent_info.append(json.dumps(ra))
         self.agents = '\n'.join(agent_info)
+
+    def create_agent(self) -> Agent:
+        # todo ollama
+        return Agent(
+            model="gemini-2.0-flash-001",
+            name="host_agent",
+            instruction=self.root_instruction,
+            before_model_callback=self.before_model_callback,
+            description=(
+                "This agent orchestrates the decomposition of the user request into"
+                " tasks that can be performed by the child agents."
+            ),
+            tools=[
+                self.list_remote_agents,
+                self.send_task,
+            ],
+        )
