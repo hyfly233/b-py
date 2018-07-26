@@ -2,6 +2,7 @@ import json
 from typing import List
 
 from google.adk import Agent
+from google.adk.agents.readonly_context import ReadonlyContext
 
 from a2a_demo.common.client import A2ACardResolver
 from a2a_demo.common.types import AgentCard
@@ -56,3 +57,30 @@ class HostAgent:
                 self.send_task,
             ],
         )
+
+    def root_instruction(self, context: ReadonlyContext) -> str:
+        current_agent = self.check_state(context)
+        return f"""You are a expert delegator that can delegate the user request to the
+        appropriate remote agents.
+        
+        Discovery:
+        - You can use `list_remote_agents` to list the available remote agents you
+        can use to delegate the task.
+        
+        Execution:
+        - For actionable tasks, you can use `create_task` to assign tasks to remote agents to perform.
+        Be sure to include the remote agent name when you respond to the user.
+        
+        You can use `check_pending_task_states` to check the states of the pending
+        tasks.
+        
+        Please rely on tools to address the request, don't make up the response. If you are not sure, please ask the user for more details.
+        Focus on the most recent parts of the conversation primarily.
+        
+        If there is an active agent, send the request to that agent with the update task tool.
+        
+        Agents:
+        {self.agents}
+        
+        Current agent: {current_agent['active_agent']}
+        """
