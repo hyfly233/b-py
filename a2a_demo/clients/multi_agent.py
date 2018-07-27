@@ -84,3 +84,14 @@ class HostAgent:
         
         Current agent: {current_agent['active_agent']}
         """
+
+    def check_state(self, context: ReadonlyContext):
+        state = context.state
+        if ('session_id' in state and
+                'session_active' in state and
+                state['session_active'] and
+                'agent' in state):
+            return {"active_agent": f'{state["agent"]}'}
+        return {"active_agent": "None"}
+
+
