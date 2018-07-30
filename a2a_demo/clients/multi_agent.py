@@ -1,7 +1,9 @@
 import json
+import uuid
 from typing import List
 
 from google.adk import Agent
+from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.readonly_context import ReadonlyContext
 
 from a2a_demo.common.client import A2ACardResolver
@@ -94,4 +96,9 @@ class HostAgent:
             return {"active_agent": f'{state["agent"]}'}
         return {"active_agent": "None"}
 
-
+    def before_model_callback(self, callback_context: CallbackContext, llm_request):
+        state = callback_context.state
+        if 'session_active' not in state or not state['session_active']:
+            if 'session_id' not in state:
+                state['session_id'] = str(uuid.uuid4())
+            state['session_active'] = True
