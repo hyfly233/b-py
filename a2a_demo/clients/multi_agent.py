@@ -5,9 +5,10 @@ from typing import List
 from google.adk import Agent
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.readonly_context import ReadonlyContext
+from google.adk.tools import ToolContext
 
 from a2a_demo.common.client import A2ACardResolver
-from a2a_demo.common.types import AgentCard
+from a2a_demo.common.types import AgentCard, Task, TaskSendParams, Message, TextPart, TaskState
 
 
 class HostAgent:
@@ -116,3 +117,82 @@ class HostAgent:
                 {"name": card.name, "description": card.description}
             )
         return remote_agent_info
+
+    async def send_task(
+            self,
+            agent_name: str,
+            message: str,
+            tool_context: ToolContext):
+
+        """
+        发送流式（如果支持）或非流式任务。这将向名为 agent_name 的远程代理发送一条消息。
+
+        Args:
+            agent_name：要发送任务的代理的名称。
+            message：要发送给代理的任务消息。
+            tool_context：此方法运行的工具上下文。
+
+        Yields:
+          JSON 数据的字典
+        """
+        if agent_name not in self.remote_agent_connections:
+            raise ValueError(f"Agent {agent_name} not found")
+        state = tool_context.state
+        state['agent'] = agent_name
+        card = self.cards[agent_name]
+        client = self.remote_agent_connections[agent_name]
+        if not client:
+            raise ValueError(f"Client not available for {agent_name}")
+        if 'task_id' in state:
+            taskId = state['task_id']
+        else:
+            taskId = str(uuid.uuid4())
+        sessionId = state['session_id']
+        task: Task
+        messageId = ""
+        metadata = {}
+        if 'input_message_metadata' in state:
+            metadata.update(**state['input_message_metadata'])
+            if 'message_id' in state['input_message_metadata']:
+                messageId = state['input_message_metadata']['message_id']
+        if not messageId:
+            messageId = str(uuid.uuid4())
+        metadata.update(**{'conversation_id': sessionId, 'message_id': messageId})
+        request: TaskSendParams = TaskSendParams(
+            id=taskId,
+            sessionId=sessionId,
+            message=Message(
+                role="user",
+                parts=[TextPart(text=message)],
+                metadata=metadata,
+            ),
+            acceptedOutputModes=["text", "text/plain", "image/png"],
+            # pushNotification=None,
+            metadata={'conversation_id': sessionId},
+        )
+        task = await client.send_task(request, self.task_callback)
+        # Assume completion unless a state returns that isn't complete
+        state['session_active'] = task.status.state not in [
+            TaskState.COMPLETED,
+            TaskState.CANCELED,
+            TaskState.FAILED,
+            TaskState.UNKNOWN,
+        ]
+        if task.status.state == TaskState.INPUT_REQUIRED:
+            # Force user input back
+            tool_context.actions.skip_summarization = True
+            tool_context.actions.escalate = True
+        elif task.status.state == TaskState.CANCELED:
+            # Open question, should we return some info for cancellation instead
+            raise ValueError(f"Agent {agent_name} task {task.id} is cancelled")
+        elif task.status.state == TaskState.FAILED:
+            # Raise error for failure
+            raise ValueError(f"Agent {agent_name} task {task.id} failed")
+        response = []
+        if task.status.message:
+            # Assume the information is in the task message.
+            response.extend(convert_parts(task.status.message.parts, tool_context))
+        if task.artifacts:
+            for artifact in task.artifacts:
+                response.extend(convert_parts(artifact.parts, tool_context))
+        return response
