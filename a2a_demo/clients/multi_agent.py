@@ -1,3 +1,4 @@
+import base64
 import json
 import uuid
 from typing import List
@@ -6,9 +7,10 @@ from google.adk import Agent
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.readonly_context import ReadonlyContext
 from google.adk.tools import ToolContext
+from google.genai import types
 
 from a2a_demo.common.client import A2ACardResolver
-from a2a_demo.common.types import AgentCard, Task, TaskSendParams, Message, TextPart, TaskState
+from a2a_demo.common.types import AgentCard, Task, TaskSendParams, Message, TextPart, TaskState, Part, DataPart
 
 
 class HostAgent:
@@ -196,3 +198,31 @@ class HostAgent:
             for artifact in task.artifacts:
                 response.extend(convert_parts(artifact.parts, tool_context))
         return response
+
+
+def convert_parts(parts: list[Part], tool_context: ToolContext):
+    rval = []
+    for p in parts:
+        rval.append(convert_part(p, tool_context))
+    return rval
+
+
+def convert_part(part: Part, tool_context: ToolContext):
+    if part.type == "text":
+        return part.text
+    elif part.type == "data":
+        return part.data
+    elif part.type == "file":
+        # Repackage A2A FilePart to google.genai Blob
+        # Currently not considering plain text as files
+        file_id = part.file.name
+        file_bytes = base64.b64decode(part.file.bytes)
+        file_part = Part(
+            inline_data=types.Blob(
+                mime_type=part.file.mimeType,
+                data=file_bytes))
+        tool_context.save_artifact(file_id, file_part)
+        tool_context.actions.skip_summarization = True
+        tool_context.actions.escalate = True
+        return DataPart(data={"artifact-file-id": file_id})
+    return f"Unknown type: {p.type}"
