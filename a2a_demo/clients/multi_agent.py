@@ -9,6 +9,7 @@ from google.adk.agents.readonly_context import ReadonlyContext
 from google.adk.tools import ToolContext
 from google.genai import types
 
+from a2a_demo.clients.remote_agent_connection import TaskUpdateCallback, RemoteAgentConnections
 from a2a_demo.common.client import A2ACardResolver
 from a2a_demo.common.types import AgentCard, Task, TaskSendParams, Message, TextPart, TaskState, Part, DataPart
 
@@ -225,4 +226,4 @@ def convert_part(part: Part, tool_context: ToolContext):
         tool_context.actions.skip_summarization = True
         tool_context.actions.escalate = True
         return DataPart(data={"artifact-file-id": file_id})
-    return f"Unknown type: {p.type}"
+    return f"Unknown type: {part.type}"
