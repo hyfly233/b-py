@@ -2,14 +2,11 @@ import json
 import random
 from typing import Any, Optional, AsyncIterable, Dict
 
-from google.adk.artifacts import InMemoryArtifactService
-from google.adk.memory import InMemoryMemoryService
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
 from google.adk.tools import ToolContext
-from google.genai import types
-
-from agent.agent import OllamaAgent
+from langchain.agents import AgentExecutor, create_react_agent
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableConfig
+from langchain_ollama import OllamaLLM
 
 request_ids = set()
 
@@ -99,44 +96,119 @@ def reimburse(request_id: str) -> dict[str, Any]:
     return {"request_id": request_id, "status": "Error: Invalid request_id."}
   return {"request_id": request_id, "status": "approved"}
 
+
+# class TestOllamaAgent:
+#
+#     SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
+#
+#     def __init__(self):
+#         self._agent = self._build_agent()
+#         self._user_id = "remote_agent"
+#         self._runner = Runner(
+#             app_name=self._agent.name,
+#             agent=self._agent,
+#             artifact_service=InMemoryArtifactService(),
+#             session_service=InMemorySessionService(),
+#             memory_service=InMemoryMemoryService(),
+#         )
+#
+#     def invoke(self, query, session_id) -> str:
+#         session = self._runner.session_service.get_session(
+#             app_name=self._agent.name, user_id=self._user_id, session_id=session_id
+#         )
+#         content = types.Content(
+#             role="user", parts=[types.Part.from_text(text=query)]
+#         )
+#         if session is None:
+#             session = self._runner.session_service.create_session(
+#                 app_name=self._agent.name,
+#                 user_id=self._user_id,
+#                 state={},
+#                 session_id=session_id,
+#             )
+#         events = list(self._runner.run(
+#             user_id=self._user_id, session_id=session.id, new_message=content
+#         ))
+#         if not events or not events[-1].content or not events[-1].content.parts:
+#             return ""
+#         return "\n".join([p.text for p in events[-1].content.parts if p.text])
+#
+#     async def stream(self, query, session_id) -> AsyncIterable[Dict[str, Any]]:
+#         pass
+#
+#     def _build_agent(self) -> OllamaAgent:
+#         pass
+
+
 class TestOllamaAgent:
 
     SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
 
-    def __init__(self):
-        self._agent = self._build_agent()
-        self._user_id = "remote_agent"
-        self._runner = Runner(
-        app_name=self._agent.name,
-        agent=self._agent,
-        artifact_service=InMemoryArtifactService(),
-        session_service=InMemorySessionService(),
-        memory_service=InMemoryMemoryService(),
-    )
+    def __init__(
+            self,
+            model_name: str = "llama3",
+            base_url: str = "http://localhost:11434"
+    ):
+        self.model_name = model_name
+        self.base_url = base_url
+
+        self.llm = OllamaLLM(
+            model=model_name,
+            base_url=base_url,
+            temperature=0.7
+        )
+
+        # todo
+        self.tools = []
+
+        # 构建 Agent (初始时没有工具)
+        self._build_agent()
+
 
     def invoke(self, query, session_id) -> str:
-        session = self._runner.session_service.get_session(
-            app_name=self._agent.name, user_id=self._user_id, session_id=session_id
+        config: RunnableConfig = {"configurable": {"thread_id": session_id}}
+
+        result = self.agent_executor.invoke(
+            input={
+                "input": query
+            },
+            config=config
         )
-        content = types.Content(
-            role="user", parts=[types.Part.from_text(text=query)]
-        )
-        if session is None:
-            session = self._runner.session_service.create_session(
-                app_name=self._agent.name,
-                user_id=self._user_id,
-                state={},
-                session_id=session_id,
-            )
-        events = list(self._runner.run(
-            user_id=self._user_id, session_id=session.id, new_message=content
-        ))
-        if not events or not events[-1].content or not events[-1].content.parts:
-            return ""
-        return "\n".join([p.text for p in events[-1].content.parts if p.text])
+
+        output = result.get("output", "出现了问题，未能获取回复")
+        return output
 
     async def stream(self, query, session_id) -> AsyncIterable[Dict[str, Any]]:
         pass
 
-    def _build_agent(self) -> OllamaAgent:
-        pass
+    def _build_agent(self):
+        # 为 ReAct 格式创建提示模板
+        react_template = f"""
+test
+"""
+        prompt = ChatPromptTemplate.from_template(react_template)
+
+        # 创建 ReAct Agent
+        agent = create_react_agent(
+            llm=self.llm,
+            tools=self.tools,
+            prompt=prompt
+        )
+
+        # 创建 Agent 执行器
+        self.agent_executor = AgentExecutor(
+            agent=agent,
+            tools=self.tools,
+            verbose=False,
+            handle_parsing_errors=True
+        )
+
+        # 创建直接聊天提示
+        self.chat_template = f"""
+test
+历史对话:
+{{chat_history}}
+
+Question: {{input}}
+"""
+        self.chat_prompt = ChatPromptTemplate.from_template(self.chat_template)

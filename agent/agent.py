@@ -8,7 +8,12 @@ MODEL_NAME = "qwen2.5-coder:7b"
 
 
 class OllamaAgent:
-    def __init__(self, model_name: str = "llama3", base_url: str = "http://localhost:11434"):
+    def __init__(
+            self,
+            name: str = "ollama_llama3",
+            model_name: str = "llama3",
+            base_url: str = "http://localhost:11434"
+    ):
         """
         初始化 Ollama Agent
 
@@ -16,6 +21,7 @@ class OllamaAgent:
             model_name (str): Ollama 中加载的模型名称
             base_url (str): Ollama 服务器地址
         """
+        self.name = name
         self.model_name = model_name
         self.base_url = base_url
         self.api_url = f"{base_url}/api/generate"

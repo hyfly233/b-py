@@ -68,30 +68,30 @@ class OllamaLangChainAgent:
     def _build_agent(self):
         # 为 ReAct 格式创建提示模板
         react_template = f"""
-    {self.system_prompt}
+{self.system_prompt}
 
-    你有权访问以下工具:
-    {{tools}}
+你有权访问以下工具:
+{{tools}}
 
-    使用以下格式回答:
+使用以下格式回答:
 
-    Question: 用户的输入问题
-    Thought: 你对问题的思考过程
-    Action: 工具名称，必须是[{{tool_names}}]中的一个
-    Action Input: 提供给工具的输入
-    Observation: 工具的结果
-    ... (可以有多个 Thought/Action/Action Input/Observation)
-    Thought: 我现在知道最终答案了
-    Answer: 对原始输入的回答
+Question: 用户的输入问题
+Thought: 你对问题的思考过程
+Action: 工具名称，必须是[{{tool_names}}]中的一个
+Action Input: 提供给工具的输入
+Observation: 工具的结果
+... (可以有多个 Thought/Action/Action Input/Observation)
+Thought: 我现在知道最终答案了
+Answer: 对原始输入的回答
 
-    如果你不需要使用工具，可以直接回答用户的问题。
+如果你不需要使用工具，可以直接回答用户的问题。
 
-    历史对话:
-    {{chat_history}}
+历史对话:
+{{chat_history}}
 
-    Question: {{input}}
-    {{agent_scratchpad}}
-    """
+Question: {{input}}
+{{agent_scratchpad}}
+"""
         prompt = ChatPromptTemplate.from_template(react_template)
 
         # 创建 ReAct Agent
@@ -111,16 +111,16 @@ class OllamaLangChainAgent:
 
         # 创建直接聊天提示
         self.chat_template = f"""
-    {self.system_prompt}
+{self.system_prompt}
 
-    如果问题简单，可以直接回答。
-    如果需要使用工具，请明确告知用户你需要使用工具来回答这个问题。
+如果问题简单，可以直接回答。
+如果需要使用工具，请明确告知用户你需要使用工具来回答这个问题。
 
-    历史对话:
-    {{chat_history}}
+历史对话:
+{{chat_history}}
 
-    Question: {{input}}
-    """
+Question: {{input}}
+"""
         self.chat_prompt = ChatPromptTemplate.from_template(self.chat_template)
 
     def query(self, user_input: str) -> str:

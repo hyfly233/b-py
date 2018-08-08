@@ -2,6 +2,8 @@ import logging
 
 import click
 
+from a2a_demo.agents.agent import TestOllamaAgent
+from a2a_demo.agents.task_manager import AgentTaskManager
 from a2a_demo.common.server import A2AServer
 from a2a_demo.common.types import AgentCapabilities, AgentSkill, AgentCard
 
@@ -27,14 +29,14 @@ def main(host, port):
             description="This agent handles the reimbursement process for the employees given the amount and purpose of the reimbursement.",
             url=f"http://{host}:{port}/",
             version="1.0.0",
-            defaultInputModes=ReimbursementAgent.SUPPORTED_CONTENT_TYPES,
-            defaultOutputModes=ReimbursementAgent.SUPPORTED_CONTENT_TYPES,
+            defaultInputModes=TestOllamaAgent.SUPPORTED_CONTENT_TYPES,
+            defaultOutputModes=TestOllamaAgent.SUPPORTED_CONTENT_TYPES,
             capabilities=capabilities,
             skills=[skill],
         )
         server = A2AServer(
             agent_card=agent_card,
-            task_manager=AgentTaskManager(agent=ReimbursementAgent()),
+            task_manager=AgentTaskManager(agent=TestOllamaAgent()),
             host=host,
             port=port,
         )
