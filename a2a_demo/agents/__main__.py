@@ -18,15 +18,15 @@ def main(host, port):
     try:
         capabilities = AgentCapabilities(streaming=True)
         skill = AgentSkill(
-            id="process_reimbursement",
-            name="Process Reimbursement Tool",
-            description="Helps with the reimbursement process for users given the amount and purpose of the reimbursement.",
-            tags=["reimbursement"],
-            examples=["Can you reimburse me $20 for my lunch with the clients?"],
+            id="test_skill",
+            name="Test Skill",
+            description="Test Skill",
+            tags=["test"],
+            examples=["Test echo Hello World"],
         )
         agent_card = AgentCard(
-            name="Reimbursement Agent",
-            description="This agent handles the reimbursement process for the employees given the amount and purpose of the reimbursement.",
+            name="Test Agent Card",
+            description="Test Agent Card",
             url=f"http://{host}:{port}/",
             version="1.0.0",
             defaultInputModes=TestOllamaAgent.SUPPORTED_CONTENT_TYPES,
@@ -34,15 +34,20 @@ def main(host, port):
             capabilities=capabilities,
             skills=[skill],
         )
+
+        # 创建A2A服务器
         server = A2AServer(
             agent_card=agent_card,
             task_manager=AgentTaskManager(agent=TestOllamaAgent()),
             host=host,
             port=port,
         )
+
+        logger.info("A2A服务器创建完成")
+
         server.start()
     except Exception as e:
-        logger.error(f"An error occurred during server startup: {e}")
+        logger.error(f"服务器启动时发生错误: {e}")
         exit(1)
 
 

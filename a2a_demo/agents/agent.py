@@ -1,6 +1,6 @@
 import json
 import random
-from typing import Any, Optional, AsyncIterable, Dict
+from typing import Any, Optional, AsyncIterable, Dict, Iterator
 
 from google.adk.tools import ToolContext
 from langchain.agents import AgentExecutor, create_react_agent
@@ -8,11 +8,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableConfig
 from langchain_ollama import OllamaLLM
 
+from langchain_agent.lang_chain_agent import StreamingCallback
+
 request_ids = set()
 
 
-def create_request_form(date: Optional[str] = None, amount: Optional[str] = None, purpose: Optional[str] = None) -> \
-dict[str, Any]:
+def create_request_form(date: Optional[str] = None,
+                        amount: Optional[str] = None,
+                        purpose: Optional[str] = None) -> dict[str, Any]:
     """
      Create a request form for the employee to fill out.
 
@@ -37,7 +40,7 @@ dict[str, Any]:
 def return_form(
         form_request: dict[str, Any],
         tool_context: ToolContext,
-        instructions: Optional[str] = None) -> dict[str, Any]:
+        instructions: Optional[str] = None) -> str:
     """
      Returns a structured json object indicating a form to complete.
 
@@ -91,53 +94,10 @@ def return_form(
 
 
 def reimburse(request_id: str) -> dict[str, Any]:
-  """Reimburse the amount of money to the employee for a given request_id."""
-  if request_id not in request_ids:
-    return {"request_id": request_id, "status": "Error: Invalid request_id."}
-  return {"request_id": request_id, "status": "approved"}
-
-
-# class TestOllamaAgent:
-#
-#     SUPPORTED_CONTENT_TYPES = ["text", "text/plain"]
-#
-#     def __init__(self):
-#         self._agent = self._build_agent()
-#         self._user_id = "remote_agent"
-#         self._runner = Runner(
-#             app_name=self._agent.name,
-#             agent=self._agent,
-#             artifact_service=InMemoryArtifactService(),
-#             session_service=InMemorySessionService(),
-#             memory_service=InMemoryMemoryService(),
-#         )
-#
-#     def invoke(self, query, session_id) -> str:
-#         session = self._runner.session_service.get_session(
-#             app_name=self._agent.name, user_id=self._user_id, session_id=session_id
-#         )
-#         content = types.Content(
-#             role="user", parts=[types.Part.from_text(text=query)]
-#         )
-#         if session is None:
-#             session = self._runner.session_service.create_session(
-#                 app_name=self._agent.name,
-#                 user_id=self._user_id,
-#                 state={},
-#                 session_id=session_id,
-#             )
-#         events = list(self._runner.run(
-#             user_id=self._user_id, session_id=session.id, new_message=content
-#         ))
-#         if not events or not events[-1].content or not events[-1].content.parts:
-#             return ""
-#         return "\n".join([p.text for p in events[-1].content.parts if p.text])
-#
-#     async def stream(self, query, session_id) -> AsyncIterable[Dict[str, Any]]:
-#         pass
-#
-#     def _build_agent(self) -> OllamaAgent:
-#         pass
+    """Reimburse the amount of money to the employee for a given request_id."""
+    if request_id not in request_ids:
+        return {"request_id": request_id, "status": "Error: Invalid request_id."}
+    return {"request_id": request_id, "status": "approved"}
 
 
 class TestOllamaAgent:
@@ -212,3 +172,51 @@ test
 Question: {{input}}
 """
         self.chat_prompt = ChatPromptTemplate.from_template(self.chat_template)
+
+    def query_stream(self, user_input: str) -> Iterator[str]:
+        """流式查询，返回生成器对象逐步输出回复"""
+        # 首先判断是否可能需要工具调用
+        # 这是简化版本，假设以下关键词可能触发工具调用
+        tool_keywords = [tool.name.lower() for tool in self.tools]
+        tool_keywords.extend([d.split()[0].lower() for tool in self.tools for d in tool.description.split(',')])
+        may_need_tool = any(keyword in user_input.lower() for keyword in tool_keywords)
+
+        try:
+
+            if may_need_tool:
+                # 如果可能需要工具，使用普通非流式模式
+                result = self.agent_executor.invoke({
+                    "input": user_input,
+                }, stream=True)
+
+                output = result.get("output", "出现了问题，未能获取回复")
+
+                # 一次性返回完整结果
+                yield output
+            else:
+                # 如果可能不需要工具，使用流式输出
+                # 创建自定义流式处理器
+                streaming_handler = StreamingCallback()
+
+                # 准备流式 LLM 实例
+                llm_with_streaming = self.llm.with_config(
+                    callbacks=[streaming_handler]
+                )
+
+                # 使用流式 LLM 直接回答
+                chain = self.chat_prompt | llm_with_streaming
+
+                # 收集流式输出的完整文本
+                full_response = ""
+
+                # 流式生成响应
+                for chunk in chain.stream({
+                    "input": user_input,
+                }):
+                    full_response += chunk
+                    yield chunk
+
+        except Exception as e:
+            error_msg = f"执行过程中出错: {str(e)}"
+            print(error_msg)
+            yield error_msg
