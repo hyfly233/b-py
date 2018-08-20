@@ -12,11 +12,11 @@ from a2a_demo.common.utils.push_notification_auth import PushNotificationReceive
 
 
 @click.command()
-@click.option("--agent", default="http://localhost:10000")
+@click.option("--agent", default="http://localhost:22330")
 @click.option("--session", default=0)
 @click.option("--history", default=False)
 @click.option("--use_push_notifications", default=False)
-@click.option("--push_notification_receiver", default="http://localhost:5000")
+@click.option("--push_notification_receiver", default="http://localhost:25000")
 async def cliMain(agent, session, history, use_push_notifications: bool, push_notification_receiver: str):
     card_resolver = A2ACardResolver(agent)
     card = card_resolver.get_agent_card()

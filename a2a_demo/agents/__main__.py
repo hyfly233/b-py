@@ -3,7 +3,7 @@ import logging
 import click
 
 from a2a_demo.agents.agent import TestOllamaAgent
-from a2a_demo.agents.task_manager import AgentTaskManager
+from a2a_demo.agents.agent_task_manager import AgentTaskManager
 from a2a_demo.common.server import A2AServer
 from a2a_demo.common.types import AgentCapabilities, AgentSkill, AgentCard
 
@@ -13,16 +13,16 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option("--host", default="localhost")
-@click.option("--port", default=10002)
+@click.option("--port", default=22330)
 def main(host, port):
     try:
         capabilities = AgentCapabilities(streaming=True)
         skill = AgentSkill(
-            id="test_skill",
-            name="Test Skill",
-            description="Test Skill",
-            tags=["test"],
-            examples=["Test echo Hello World"],
+            id="weather",
+            name="根据位置获取天气信息",
+            description="获取指定地点的天气信息，输入应该是城市名或地区名",
+            tags=["weather"],
+            examples=["获取北京的天气"],
         )
         agent_card = AgentCard(
             name="Test Agent Card",
