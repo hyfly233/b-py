@@ -17,8 +17,14 @@ logger = logging.getLogger(__name__)
 
 
 class A2AServer:
-    def __init__(self, host="0.0.0.0", port=5000, endpoint="/", agent_card: AgentCard = None,
-                 task_manager: TaskManager = None):
+    def __init__(
+            self,
+            host="0.0.0.0",
+            port=5000,
+            endpoint="/",
+            agent_card: AgentCard = None,
+            task_manager: TaskManager = None
+    ):
         self.host = host
         self.port = port
         self.endpoint = endpoint
