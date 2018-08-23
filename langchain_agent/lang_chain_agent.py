@@ -20,7 +20,11 @@ class StreamingCallback(BaseCallbackHandler):
         yield token
 
 class OllamaLangChainAgent:
-    def __init__(self, model_name: str = "llama3", base_url: str = "http://localhost:11434"):
+    def __init__(
+            self,
+            model_name: str = "llama3",
+            base_url: str = "http://localhost:11434"
+    ):
         """
         初始化基于 LangChain 的 Ollama Agent，使用 ReAct 模式
 
@@ -51,17 +55,26 @@ class OllamaLangChainAgent:
         # 构建 Agent (初始时没有工具)
         self._build_agent()
 
-    def add_tool(self, tool: Tool):
+    def add_tool(
+            self,
+            tool: Tool
+    ):
         """添加工具到 Agent"""
         self.tools.append(tool)
         # 重新构建 Agent 以包含新工具
         self._build_agent()
 
-    def add_tools(self, tools: List[Tool]):
+    def add_tools(
+            self,
+            tools: List[Tool]
+    ):
         self.tools.extend(tools)
         self._build_agent()
 
-    def set_system_prompt(self, prompt: str):
+    def set_system_prompt(
+            self,
+            prompt: str
+    ):
         self.system_prompt = prompt
         self._build_agent()
 
@@ -95,7 +108,7 @@ Question: {{input}}
         prompt = ChatPromptTemplate.from_template(react_template)
 
         # 创建 ReAct Agent
-        agent = create_react_agent(
+        react_agent = create_react_agent(
             llm=self.llm,
             tools=self.tools,
             prompt=prompt
@@ -103,7 +116,7 @@ Question: {{input}}
 
         # 创建 Agent 执行器
         self.agent_executor = AgentExecutor(
-            agent=agent,
+            agent=react_agent,
             tools=self.tools,
             verbose=False,
             handle_parsing_errors=True
@@ -123,7 +136,10 @@ Question: {{input}}
 """
         self.chat_prompt = ChatPromptTemplate.from_template(self.chat_template)
 
-    def query(self, user_input: str) -> str:
+    def query(
+            self,
+            user_input: str
+    ) -> str:
         """向 Agent 发送查询并获取回复"""
         try:
             # 准备历史对话文本
@@ -149,7 +165,10 @@ Question: {{input}}
         except Exception as e:
             return f"执行过程中出错: {str(e)}"
 
-    def query_stream(self, user_input: str) -> Iterator[str]:
+    def query_stream(
+            self,
+            user_input: str
+    ) -> Iterator[str]:
         """流式查询，返回生成器对象逐步输出回复"""
         # 首先判断是否可能需要工具调用
         # 这是简化版本，假设以下关键词可能触发工具调用
@@ -233,60 +252,6 @@ def get_weather(location: str) -> str:
     # 下面是模拟的返回结果
     return f"{location}的天气：晴天，25°C，湿度60%"
 
-
-def calculate(expression: str) -> str:
-    """计算数学表达式"""
-    try:
-        # 使用安全的 eval 替代方案
-        # 注意：在生产环境中不应直接使用 eval
-        from ast import literal_eval
-        import operator
-        import math
-
-        # 定义允许的操作
-        safe_dict = {
-            'abs': abs,
-            'float': float,
-            'int': int,
-            'max': max,
-            'min': min,
-            'pow': pow,
-            'round': round,
-            'sum': sum,
-            '+': operator.add,
-            '-': operator.sub,
-            '*': operator.mul,
-            '/': operator.truediv,
-            '**': operator.pow,
-            'sqrt': math.sqrt,
-            'sin': math.sin,
-            'cos': math.cos,
-            'tan': math.tan,
-            'pi': math.pi,
-            'e': math.e
-        }
-
-        # 替换常见的数学函数名称
-        expression = expression.replace('sqrt', 'math.sqrt')
-        expression = expression.replace('sin', 'math.sin')
-        expression = expression.replace('cos', 'math.cos')
-        expression = expression.replace('tan', 'math.tan')
-        expression = expression.replace('pi', 'math.pi')
-
-        # 使用 eval 计算表达式
-        result = eval(expression, {"__builtins__": {}}, safe_dict)
-        return f"计算结果: {result}"
-    except Exception as e:
-        return f"计算错误: {str(e)}"
-
-
-def search_web(query: str) -> str:
-    """搜索网络获取信息"""
-    # 这里应该调用真实的搜索 API，比如 Bing, Google 等
-    # 下面是模拟的返回结果
-    return f"关于 '{query}' 的搜索结果：\n1. 相关文章A\n2. 相关网页B\n3. 维基百科条目C"
-
-
 # 使用示例
 if __name__ == "__main__":
     # 创建 LangChain Agent
@@ -298,16 +263,6 @@ if __name__ == "__main__":
             name="weather",
             description="获取指定地点的天气信息，输入应该是城市名或地区名",
             func=get_weather
-        ),
-        Tool(
-            name="calculator",
-            description="计算数学表达式，可以处理基本运算和一些高级函数如平方根(sqrt)、三角函数(sin,cos,tan)",
-            func=calculate
-        ),
-        Tool(
-            name="web_search",
-            description="在网络上搜索信息，当需要最新信息或事实性知识时使用",
-            func=search_web
         )
     ]
 
