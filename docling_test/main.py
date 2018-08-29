@@ -9,7 +9,7 @@ converter = DocumentConverter(format_options={
     InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
 })
 
-result = converter.convert("/Users/flyhy/Documents/OpsGuide-Network-Troubleshooting.pdf")
+result = converter.convert("./pdf/docling_test_pdf.pdf")
 doc = result.document
 
 print(doc)
