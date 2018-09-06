@@ -1,79 +1,106 @@
-import json
 import logging
+import os
 from pathlib import Path
 
-import yaml
+import requests
+from dotenv import load_dotenv
 
-from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
 from docling.datamodel.base_models import InputFormat
-from docling.document_converter import (
-    DocumentConverter,
-    PdfFormatOption,
-    WordFormatOption,
+from docling.datamodel.pipeline_options import (
+    ApiVlmOptions,
+    ResponseFormat,
+    VlmPipelineOptions,
 )
-from docling.pipeline.simple_pipeline import SimplePipeline
-from docling.pipeline.standard_pdf_pipeline import StandardPdfPipeline
+from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.pipeline.vlm_pipeline import VlmPipeline
 
-_log = logging.getLogger(__name__)
+def ollama_vlm_options(model: str, prompt: str):
+    options = ApiVlmOptions(
+        url="http://localhost:11434/v1/chat/completions",  # the default Ollama endpoint
+        params=dict(
+            model=model,
+        ),
+        prompt=prompt,
+        timeout=90,
+        scale=1.0,
+        response_format=ResponseFormat.MARKDOWN,
+    )
+    return options
+
+def watsonx_vlm_options(model: str, prompt: str):
+    load_dotenv()
+    api_key = os.environ.get("WX_API_KEY")
+    project_id = os.environ.get("WX_PROJECT_ID")
+
+    def _get_iam_access_token(api_key: str) -> str:
+        res = requests.post(
+            url="https://iam.cloud.ibm.com/identity/token",
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data=f"grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey={api_key}",
+        )
+        res.raise_for_status()
+        api_out = res.json()
+        print(f"{api_out=}")
+        return api_out["access_token"]
+
+    options = ApiVlmOptions(
+        url="https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2023-05-29",
+        params=dict(
+            model_id=model,
+            project_id=project_id,
+            parameters=dict(
+                max_new_tokens=400,
+            ),
+        ),
+        headers={
+            "Authorization": "Bearer " + _get_iam_access_token(api_key=api_key),
+        },
+        prompt=prompt,
+        timeout=60,
+        response_format=ResponseFormat.MARKDOWN,
+    )
+    return options
 
 def main():
-    input_paths = [
-        Path("README.md"),
-        Path("tests/data/html/wiki_duck.html"),
-        Path("tests/data/docx/word_sample.docx"),
-        Path("tests/data/docx/lorem_ipsum.docx"),
-        Path("tests/data/pptx/powerpoint_sample.pptx"),
-        Path("tests/data/2305.03393v1-pg9-img.png"),
-        Path("tests/data/pdf/2206.01062.pdf"),
-        Path("tests/data/asciidoc/test_01.asciidoc"),
-    ]
+    logging.basicConfig(level=logging.INFO)
 
-    ## for defaults use:
-    # doc_converter = DocumentConverter()
+    # input_doc_path = Path("./tests/data/pdf/2206.01062.pdf")
+    input_doc_path = Path("./tests/data/pdf/2305.03393v1-pg9.pdf")
 
-    ## to customize use:
-
-    doc_converter = (
-        DocumentConverter(  # all of the below is optional, has internal defaults.
-            allowed_formats=[
-                InputFormat.PDF,
-                InputFormat.IMAGE,
-                InputFormat.DOCX,
-                InputFormat.HTML,
-                InputFormat.PPTX,
-                InputFormat.ASCIIDOC,
-                InputFormat.CSV,
-                InputFormat.MD,
-            ],  # whitelist formats, non-matching files are ignored.
-            format_options={
-                InputFormat.PDF: PdfFormatOption(
-                    pipeline_cls=StandardPdfPipeline, backend=PyPdfiumDocumentBackend
-                ),
-                InputFormat.DOCX: WordFormatOption(
-                    pipeline_cls=SimplePipeline  # , backend=MsWordDocumentBackend
-                ),
-            },
-        )
+    pipeline_options = VlmPipelineOptions(
+        enable_remote_services=True  # <-- this is required!
     )
 
-    conv_results = doc_converter.convert_all(input_paths)
+    # The ApiVlmOptions() allows to interface with APIs supporting
+    # the multi-modal chat interface. Here follow a few example on how to configure those.
 
-    for res in conv_results:
-        out_path = Path("scratch")
-        print(
-            f"Document {res.input.file.name} converted."
-            f"\nSaved markdown output to: {out_path!s}"
-        )
-        _log.debug(res.document._export_to_indented_text(max_text_len=16))
-        # Export Docling document format to markdowndoc:
-        with (out_path / f"{res.input.file.stem}.md").open("w") as fp:
-            fp.write(res.document.export_to_markdown())
+    # One possibility is self-hosting model, e.g. via Ollama.
+    # Example using the Granite Vision  model: (uncomment the following lines)
+    pipeline_options.vlm_options = ollama_vlm_options(
+        model="granite3.2-vision:2b",
+        prompt="OCR the full page to markdown.",
+    )
 
-        with (out_path / f"{res.input.file.stem}.json").open("w") as fp:
-            fp.write(json.dumps(res.document.export_to_dict()))
+    # Another possibility is using online services, e.g. watsonx.ai.
+    # Using requires setting the env variables WX_API_KEY and WX_PROJECT_ID.
+    # Uncomment the following line for this option:
+    # pipeline_options.vlm_options = watsonx_vlm_options(
+    #     model="ibm/granite-vision-3-2-2b", prompt="OCR the full page to markdown."
+    # )
 
-        with (out_path / f"{res.input.file.stem}.yaml").open("w") as fp:
-            fp.write(yaml.safe_dump(res.document.export_to_dict()))
+    # Create the DocumentConverter and launch the conversion.
+    doc_converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(
+                pipeline_options=pipeline_options,
+                pipeline_cls=VlmPipeline,
+            )
+        }
+    )
+    result = doc_converter.convert(input_doc_path)
+    print(result.document.export_to_markdown())
 
 if __name__ == "__main__":
     main()
