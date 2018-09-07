@@ -1,106 +1,87 @@
 import logging
-import os
+import time
 from pathlib import Path
 
-import requests
-from dotenv import load_dotenv
-
 from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import (
-    ApiVlmOptions,
-    ResponseFormat,
-    VlmPipelineOptions,
-)
+from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling.pipeline.vlm_pipeline import VlmPipeline
+from docling_core.types.doc import ImageRefMode, PictureItem, TableItem
 
-def ollama_vlm_options(model: str, prompt: str):
-    options = ApiVlmOptions(
-        url="http://localhost:11434/v1/chat/completions",  # the default Ollama endpoint
-        params=dict(
-            model=model,
-        ),
-        prompt=prompt,
-        timeout=90,
-        scale=1.0,
-        response_format=ResponseFormat.MARKDOWN,
-    )
-    return options
+_log = logging.getLogger(__name__)
 
-def watsonx_vlm_options(model: str, prompt: str):
-    load_dotenv()
-    api_key = os.environ.get("WX_API_KEY")
-    project_id = os.environ.get("WX_PROJECT_ID")
-
-    def _get_iam_access_token(api_key: str) -> str:
-        res = requests.post(
-            url="https://iam.cloud.ibm.com/identity/token",
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            data=f"grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey={api_key}",
-        )
-        res.raise_for_status()
-        api_out = res.json()
-        print(f"{api_out=}")
-        return api_out["access_token"]
-
-    options = ApiVlmOptions(
-        url="https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2023-05-29",
-        params=dict(
-            model_id=model,
-            project_id=project_id,
-            parameters=dict(
-                max_new_tokens=400,
-            ),
-        ),
-        headers={
-            "Authorization": "Bearer " + _get_iam_access_token(api_key=api_key),
-        },
-        prompt=prompt,
-        timeout=60,
-        response_format=ResponseFormat.MARKDOWN,
-    )
-    return options
+IMAGE_RESOLUTION_SCALE = 2.0
 
 def main():
     logging.basicConfig(level=logging.INFO)
 
-    # input_doc_path = Path("./tests/data/pdf/2206.01062.pdf")
-    input_doc_path = Path("./tests/data/pdf/2305.03393v1-pg9.pdf")
+    input_doc_path = Path("./pdf/docling_test_pdf.pdf")
+    output_dir = Path("scratch")
 
-    pipeline_options = VlmPipelineOptions(
-        enable_remote_services=True  # <-- this is required!
-    )
+    # Important: For operating with page images, we must keep them, otherwise the DocumentConverter
+    # will destroy them for cleaning up memory.
+    # This is done by setting PdfPipelineOptions.images_scale, which also defines the scale of images.
+    # scale=1 correspond of a standard 72 DPI image
+    # The PdfPipelineOptions.generate_* are the selectors for the document elements which will be enriched
+    # with the image field
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.images_scale = IMAGE_RESOLUTION_SCALE
+    pipeline_options.generate_page_images = True
+    pipeline_options.generate_picture_images = True
 
-    # The ApiVlmOptions() allows to interface with APIs supporting
-    # the multi-modal chat interface. Here follow a few example on how to configure those.
-
-    # One possibility is self-hosting model, e.g. via Ollama.
-    # Example using the Granite Vision  model: (uncomment the following lines)
-    pipeline_options.vlm_options = ollama_vlm_options(
-        model="granite3.2-vision:2b",
-        prompt="OCR the full page to markdown.",
-    )
-
-    # Another possibility is using online services, e.g. watsonx.ai.
-    # Using requires setting the env variables WX_API_KEY and WX_PROJECT_ID.
-    # Uncomment the following line for this option:
-    # pipeline_options.vlm_options = watsonx_vlm_options(
-    #     model="ibm/granite-vision-3-2-2b", prompt="OCR the full page to markdown."
-    # )
-
-    # Create the DocumentConverter and launch the conversion.
     doc_converter = DocumentConverter(
         format_options={
-            InputFormat.PDF: PdfFormatOption(
-                pipeline_options=pipeline_options,
-                pipeline_cls=VlmPipeline,
-            )
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
         }
     )
-    result = doc_converter.convert(input_doc_path)
-    print(result.document.export_to_markdown())
 
+    start_time = time.time()
+
+    conv_res = doc_converter.convert(input_doc_path)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    doc_filename = conv_res.input.file.stem
+
+    # Save page images
+    for page_no, page in conv_res.document.pages.items():
+        page_no = page.page_no
+        page_image_filename = output_dir / f"{doc_filename}-{page_no}.png"
+        with page_image_filename.open("wb") as fp:
+            page.image.pil_image.save(fp, format="PNG")
+
+    # Save images of figures and tables
+    table_counter = 0
+    picture_counter = 0
+    for element, _level in conv_res.document.iterate_items():
+        if isinstance(element, TableItem):
+            table_counter += 1
+            element_image_filename = (
+                    output_dir / f"{doc_filename}-table-{table_counter}.png"
+            )
+            with element_image_filename.open("wb") as fp:
+                element.get_image(conv_res.document).save(fp, "PNG")
+
+        if isinstance(element, PictureItem):
+            picture_counter += 1
+            element_image_filename = (
+                    output_dir / f"{doc_filename}-picture-{picture_counter}.png"
+            )
+            with element_image_filename.open("wb") as fp:
+                element.get_image(conv_res.document).save(fp, "PNG")
+
+    # Save markdown with embedded pictures
+    md_filename = output_dir / f"{doc_filename}-with-images.md"
+    conv_res.document.save_as_markdown(md_filename, image_mode=ImageRefMode.EMBEDDED)
+
+    # Save markdown with externally referenced pictures
+    md_filename = output_dir / f"{doc_filename}-with-image-refs.md"
+    conv_res.document.save_as_markdown(md_filename, image_mode=ImageRefMode.REFERENCED)
+
+    # Save HTML with externally referenced pictures
+    html_filename = output_dir / f"{doc_filename}-with-image-refs.html"
+    conv_res.document.save_as_html(html_filename, image_mode=ImageRefMode.REFERENCED)
+
+    end_time = time.time() - start_time
+
+    _log.info(f"Document converted and figures exported in {end_time:.2f} seconds.")
 if __name__ == "__main__":
     main()
