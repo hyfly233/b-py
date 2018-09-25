@@ -1,7 +1,9 @@
 import logging
+import os
 import time
 from pathlib import Path
 
+from docling.chunking import HybridChunker
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
     AcceleratorDevice,
@@ -9,7 +11,6 @@ from docling.datamodel.pipeline_options import (
     PdfPipelineOptions,
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling.chunking import HybridChunker
 
 SOURCE = "./pdf/Kotlin实战.pdf"
 # SOURCE = "./pdf/OpsGuide-Network-Troubleshooting.pdf"
@@ -21,7 +22,10 @@ _log = logging.getLogger(__name__)
 
 
 def main():
-    _log.info(f"---------")
+    # 判断运行的平台 macos windows linux
+    os_platform = os.uname().sysname
+
+    _log.info("运行平台: %s", os_platform)
 
     # 配置分块
     chunker = HybridChunker()
