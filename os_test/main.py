@@ -1,17 +1,41 @@
-import logging
-import os
+import multiprocessing
+import platform
+import sys
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
-)
-_log = logging.getLogger(__name__)
+import torch
 
 
 def main():
-    # 判断运行的平台 macos windows linux
-    os_platform = os.uname().sysname
+    # 获取操作系统类型
+    os_type = platform.system()
+    print("操作系统类型:", os_type)
 
-    _log.info("运行平台: %s", os_platform)
+    # 获取操作系统版本号
+    os_version = platform.version()
+    print("操作系统版本号:", os_version)
+
+    # 获取操作系统的主机名
+    hostname = platform.node()
+    print("主机名:", hostname)
+
+    # 获取CPU架构
+    cpu_architecture = platform.machine()
+    print("CPU架构:", cpu_architecture)
+
+    # 获取CPU核心数
+    cpu_cores = multiprocessing.cpu_count()
+    print("CPU核心数:", cpu_cores)
+
+    # 获取Python版本
+    python_version = sys.version_info
+    print("Python版本:", python_version)
+
+    # 获取cuda版本
+    # if hasattr(sys, 'cuda_version'):
+    #   cuda_version = sys.cuda_version
+    cuda_version = torch.version.cuda
+    print("CUDA版本:", cuda_version)
+
 
 
 if __name__ == '__main__':

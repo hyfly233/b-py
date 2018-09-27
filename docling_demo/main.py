@@ -3,6 +3,7 @@ import os
 import time
 from pathlib import Path
 
+import torch
 from docling.chunking import HybridChunker
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
@@ -22,13 +23,10 @@ _log = logging.getLogger(__name__)
 
 
 def main():
-    # 判断运行的平台 macos windows linux
-    os_platform = os.uname().sysname
 
-    _log.info("运行平台: %s", os_platform)
 
     # 配置分块
-    chunker = HybridChunker()
+    # chunker = HybridChunker()
 
 
     # 配置 pipeline
@@ -37,9 +35,16 @@ def main():
     pipeline_options.do_table_structure = True
     pipeline_options.table_structure_options.do_cell_matching = True
     ## 加速配置
-    pipeline_options.accelerator_options = AcceleratorOptions(
-        num_threads=8, device=AcceleratorDevice.MPS
-    )
+    # pipeline_options.accelerator_options = AcceleratorOptions(
+    #     num_threads=8, device=AcceleratorDevice.MPS
+    # )
+
+    cuda_version = torch.version.cuda
+    if cuda_version:
+        pipeline_options.accelerator_options = AcceleratorOptions(
+            num_threads=8,
+            device=AcceleratorDevice.CUDA
+        )
 
     converter = DocumentConverter(
         format_options={
