@@ -1,10 +1,9 @@
 import logging
-import os
+import multiprocessing
 import time
 from pathlib import Path
 
 import torch
-from docling.chunking import HybridChunker
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
     AcceleratorDevice,
@@ -23,7 +22,9 @@ _log = logging.getLogger(__name__)
 
 
 def main():
-
+    # 获取CPU核心数
+    cpu_cores = multiprocessing.cpu_count()
+    _log.info(f"CPU核心数: {cpu_cores} --------")
 
     # 配置分块
     # chunker = HybridChunker()
@@ -42,8 +43,14 @@ def main():
     cuda_version = torch.version.cuda
     if cuda_version:
         pipeline_options.accelerator_options = AcceleratorOptions(
-            num_threads=8,
-            device=AcceleratorDevice.CUDA
+            num_threads=cpu_cores,
+            device=AcceleratorDevice.CUDA,
+            cuda_use_flash_attention2=True,
+        )
+    else:
+        pipeline_options.accelerator_options = AcceleratorOptions(
+            num_threads=cpu_cores,
+            device=AcceleratorDevice.MPS
         )
 
     converter = DocumentConverter(
