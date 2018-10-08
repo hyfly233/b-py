@@ -12,8 +12,7 @@ from docling.datamodel.pipeline_options import (
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
 
-SOURCE = "./pdf/Kotlin实战.pdf"
-# SOURCE = "./pdf/OpsGuide-Network-Troubleshooting.pdf"
+SOURCE = "./pdf/OpsGuide-Network-Troubleshooting.pdf"
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"

@@ -31,10 +31,10 @@ def main():
     print("Python版本:", python_version)
 
     # 获取cuda版本
-    # if hasattr(sys, 'cuda_version'):
-    #   cuda_version = sys.cuda_version
     cuda_version = torch.version.cuda
     print("CUDA版本:", cuda_version)
+    cudnn_version = torch.backends.cudnn.version()
+    print("cuDNN版本:", cudnn_version)
 
 
 
