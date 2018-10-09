@@ -36,6 +36,10 @@ def main():
     cudnn_version = torch.backends.cudnn.version()
     print("cuDNN版本:", cudnn_version)
 
+    #
+    print("CUDA可用:", torch.cuda.is_available())
+    print("MPS可用:", torch.backends.mps.is_available())
+
 
 
 if __name__ == '__main__':

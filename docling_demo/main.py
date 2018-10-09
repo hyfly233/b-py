@@ -32,24 +32,29 @@ def main():
     # 配置 pipeline
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = True
+    ## 表格处理
     pipeline_options.do_table_structure = True
     pipeline_options.table_structure_options.do_cell_matching = True
+    ## 图像处理
+    pipeline_options.do_image_processing = True
+    pipeline_options.image_processing_options.do_ocr = True
+    pipeline_options.image_processing_options.do_image_enhancement = True
     ## 加速配置
-    # pipeline_options.accelerator_options = AcceleratorOptions(
-    #     num_threads=8, device=AcceleratorDevice.MPS
-    # )
-
-    cuda_version = torch.version.cuda
-    if cuda_version:
+    if torch.cuda.is_available():
         pipeline_options.accelerator_options = AcceleratorOptions(
             num_threads=cpu_cores,
             device=AcceleratorDevice.CUDA,
             cuda_use_flash_attention2=True,
         )
-    else:
+    elif torch.backends.mps.is_available():
         pipeline_options.accelerator_options = AcceleratorOptions(
             num_threads=cpu_cores,
             device=AcceleratorDevice.MPS
+        )
+    else:
+        pipeline_options.accelerator_options = AcceleratorOptions(
+            num_threads=cpu_cores,
+            device=AcceleratorDevice.CPU
         )
 
     converter = DocumentConverter(
