@@ -3,7 +3,7 @@ import multiprocessing
 import time
 from pathlib import Path
 
-import torch
+import torch.cuda
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
     AcceleratorDevice,
@@ -30,36 +30,33 @@ def main():
 
 
     # 配置 pipeline
-    pipeline_options = PdfPipelineOptions()
-    pipeline_options.do_ocr = True
+    pdf_pipeline_options = PdfPipelineOptions()
+    pdf_pipeline_options.do_ocr = True  # 启用OCR
     ## 表格处理
-    pipeline_options.do_table_structure = True
-    pipeline_options.table_structure_options.do_cell_matching = True
-    ## 图像处理
-    pipeline_options.do_image_processing = True
-    pipeline_options.image_processing_options.do_ocr = True
-    pipeline_options.image_processing_options.do_image_enhancement = True
+    pdf_pipeline_options.do_table_structure = True  # 启用表结构提取
+    pdf_pipeline_options.table_structure_options.do_cell_matching = True  # 启用单元格匹配
+    ## 代码块处理
+    pdf_pipeline_options.do_code_enrichment = True  # 启用代码块提取
+    ## 公式处理
+    pdf_pipeline_options.do_formula_enrichment = True  # 启用公式提取
     ## 加速配置
     if torch.cuda.is_available():
-        pipeline_options.accelerator_options = AcceleratorOptions(
+        ## ocr配置
+        pdf_pipeline_options.ocr_options.use_gpu = True
+        pdf_pipeline_options.accelerator_options = AcceleratorOptions(
             num_threads=cpu_cores,
             device=AcceleratorDevice.CUDA,
             cuda_use_flash_attention2=True,
         )
-    elif torch.backends.mps.is_available():
-        pipeline_options.accelerator_options = AcceleratorOptions(
-            num_threads=cpu_cores,
-            device=AcceleratorDevice.MPS
-        )
     else:
-        pipeline_options.accelerator_options = AcceleratorOptions(
+        pdf_pipeline_options.accelerator_options = AcceleratorOptions(
             num_threads=cpu_cores,
-            device=AcceleratorDevice.CPU
+            device=AcceleratorDevice.AUTO,
         )
 
     converter = DocumentConverter(
         format_options={
-            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_pipeline_options)
         }
     )
 

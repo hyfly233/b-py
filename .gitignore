@@ -15,3 +15,5 @@ models
 *.spec
 *.log
 *.pid
+*/pdf/
+*/output/
