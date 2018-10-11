@@ -8,9 +8,13 @@ from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
     AcceleratorDevice,
     AcceleratorOptions,
+    ApiVlmOptions,
+    ResponseFormat,
     PdfPipelineOptions,
+    VlmPipelineOptions,
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.pipeline.vlm_pipeline import VlmPipeline
 
 SOURCE = "./pdf/OpsGuide-Network-Troubleshooting.pdf"
 
@@ -20,6 +24,19 @@ logging.basicConfig(
 _log = logging.getLogger(__name__)
 
 
+def ollama_vlm_options(model: str, prompt: str):
+    options = ApiVlmOptions(
+        url="http://localhost:11434/v1/chat/completions",  # the default Ollama endpoint
+        params=dict(
+            model=model,
+        ),
+        prompt=prompt,
+        timeout=90,
+        scale=1.0,
+        response_format=ResponseFormat.MARKDOWN,
+    )
+    return options
+
 def main():
     # 获取CPU核心数
     cpu_cores = multiprocessing.cpu_count()
@@ -28,8 +45,7 @@ def main():
     # 配置分块
     # chunker = HybridChunker()
 
-
-    # 配置 pipeline
+    # # 配置 PdfPipelineOptions ----------------------
     pdf_pipeline_options = PdfPipelineOptions()
     pdf_pipeline_options.do_ocr = True  # 启用OCR
     ## 表格处理
@@ -39,6 +55,9 @@ def main():
     pdf_pipeline_options.do_code_enrichment = True  # 启用代码块提取
     ## 公式处理
     pdf_pipeline_options.do_formula_enrichment = True  # 启用公式提取
+    ## 图片处理
+    pdf_pipeline_options.do_picture_classification = True  # 启用对文档中的图片进行分类
+    pdf_pipeline_options.do_picture_description = True  # 启用运行描述文档中的图片
     ## 加速配置
     if torch.cuda.is_available():
         ## ocr配置
@@ -56,9 +75,32 @@ def main():
 
     converter = DocumentConverter(
         format_options={
-            InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_pipeline_options)
+            InputFormat.PDF: PdfFormatOption(
+                pipeline_options=pdf_pipeline_options
+            )
         }
     )
+
+    # # 配置 VlmPipelineOptions ----------------------
+    vlm_pipeline_options = VlmPipelineOptions(
+        enable_remote_services=True  # <-- this is required!
+    )
+
+    vlm_pipeline_options.vlm_options = ollama_vlm_options(
+        model="granite3.2-vision:2b",
+        prompt="OCR the full page to markdown.",
+    )
+
+    converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(
+                pipeline_options=vlm_pipeline_options,
+                pipeline_cls=VlmPipeline,
+            )
+        }
+    )
+
+    # # ----------------------------
 
     _log.info(f"转换器配置完成 ..........")
 
