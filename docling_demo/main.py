@@ -88,6 +88,7 @@ def main():
 
     vlm_pipeline_options.vlm_options = ollama_vlm_options(
         model="granite3.2-vision:2b",
+        # model="granite3.2-vision:2b-q8_0",
         prompt="OCR the full page to markdown.",
     )
 
