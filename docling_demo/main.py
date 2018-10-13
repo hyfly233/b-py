@@ -88,7 +88,7 @@ def main():
 
     vlm_pipeline_options.vlm_options = ollama_vlm_options(
         model="granite3.2-vision:2b",
-        # model="granite3.2-vision:2b-q8_0",
+        # model="granite3.2-vision:2b-fp16",
         prompt="OCR the full page to markdown.",
     )
 
@@ -115,7 +115,7 @@ def main():
 
     end_time = time.time()
     _log.info(f"转换文档结束，完成时间 [{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))}] ..........")
-    _log.info(f"转换文档耗时 [{end_time - start_time}] ..........")
+    _log.info(f"转换文档耗时 [{end_time - start_time}] s ..........")
 
     # 导出
     output_dir = Path("output")
