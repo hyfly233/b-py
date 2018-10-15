@@ -31,7 +31,7 @@ def ollama_vlm_options(model: str, prompt: str):
             model=model,
         ),
         prompt=prompt,
-        timeout=90,
+        timeout=1000,
         scale=1.0,
         response_format=ResponseFormat.MARKDOWN,
     )
@@ -87,8 +87,8 @@ def main():
     )
 
     vlm_pipeline_options.vlm_options = ollama_vlm_options(
-        model="granite3.2-vision:2b",
-        # model="granite3.2-vision:2b-fp16",
+        # model="granite3.2-vision:2b",
+        model="granite3.2-vision:2b-fp16",
         prompt="OCR the full page to markdown.",
     )
 
