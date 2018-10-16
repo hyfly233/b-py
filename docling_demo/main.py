@@ -16,7 +16,8 @@ from docling.datamodel.pipeline_options import (
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.pipeline.vlm_pipeline import VlmPipeline
 
-SOURCE = "./pdf/OpsGuide-Network-Troubleshooting.pdf"
+# SOURCE = "./pdf/OpsGuide-Network-Troubleshooting.pdf"
+SOURCE = "./pdf/d2l-zh-pytorch.pdf"
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
