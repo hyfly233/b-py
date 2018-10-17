@@ -32,7 +32,7 @@ def ollama_vlm_options(model: str, prompt: str):
             model=model,
         ),
         prompt=prompt,
-        timeout=1000,
+        timeout=3600,
         scale=1.0,
         response_format=ResponseFormat.MARKDOWN,
     )
