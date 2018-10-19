@@ -10,14 +10,17 @@ from docling.datamodel.pipeline_options import (
     AcceleratorOptions,
     ApiVlmOptions,
     ResponseFormat,
-    PdfPipelineOptions,
-    VlmPipelineOptions,
+    PdfPipelineOptions, TableStructureOptions, OcrMacOptions,
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling.pipeline.vlm_pipeline import VlmPipeline
+from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 
-# SOURCE = "./pdf/OpsGuide-Network-Troubleshooting.pdf"
-SOURCE = "./pdf/d2l-zh-pytorch.pdf"
+# from docling.pipeline.vlm_pipeline import VlmPipeline
+
+SOURCE = "./pdf/2206.01062v1.pdf"
+# SOURCE = "./pdf/2503.00004v1.pdf"
+# SOURCE = "./pdf/2504.20103v1.pdf"
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
@@ -43,15 +46,14 @@ def main():
     cpu_cores = multiprocessing.cpu_count()
     _log.info(f"CPU核心数: {cpu_cores} --------")
 
-    # 配置分块
-    # chunker = HybridChunker()
-
     # # 配置 PdfPipelineOptions ----------------------
     pdf_pipeline_options = PdfPipelineOptions()
     pdf_pipeline_options.do_ocr = True  # 启用OCR
     ## 表格处理
     pdf_pipeline_options.do_table_structure = True  # 启用表结构提取
-    pdf_pipeline_options.table_structure_options.do_cell_matching = True  # 启用单元格匹配
+    pdf_pipeline_options.table_structure_options = TableStructureOptions(
+        do_cell_matching=True,  # 启用单元格匹配
+    )
     ## 代码块处理
     pdf_pipeline_options.do_code_enrichment = True  # 启用代码块提取
     ## 公式处理
@@ -59,6 +61,13 @@ def main():
     ## 图片处理
     pdf_pipeline_options.do_picture_classification = True  # 启用对文档中的图片进行分类
     pdf_pipeline_options.do_picture_description = True  # 启用运行描述文档中的图片
+    # pdf_pipeline_options.picture_description_options = PictureDescriptionVlmOptions(
+    #     repo_id="",
+    #     prompt="Describe the image in three sentences. Be consise and accurate.",
+    # )
+    pdf_pipeline_options.images_scale = 2.0
+    pdf_pipeline_options.generate_picture_images = True
+
     ## 加速配置
     if torch.cuda.is_available():
         ## ocr配置
@@ -69,6 +78,7 @@ def main():
             cuda_use_flash_attention2=True,
         )
     else:
+        pdf_pipeline_options.ocr_options = OcrMacOptions()
         pdf_pipeline_options.accelerator_options = AcceleratorOptions(
             num_threads=cpu_cores,
             device=AcceleratorDevice.AUTO,
@@ -83,24 +93,24 @@ def main():
     )
 
     # # 配置 VlmPipelineOptions ----------------------
-    vlm_pipeline_options = VlmPipelineOptions(
-        enable_remote_services=True  # <-- this is required!
-    )
-
-    vlm_pipeline_options.vlm_options = ollama_vlm_options(
-        # model="granite3.2-vision:2b",
-        model="granite3.2-vision:2b-fp16",
-        prompt="OCR the full page to markdown.",
-    )
-
-    converter = DocumentConverter(
-        format_options={
-            InputFormat.PDF: PdfFormatOption(
-                pipeline_options=vlm_pipeline_options,
-                pipeline_cls=VlmPipeline,
-            )
-        }
-    )
+    # vlm_pipeline_options = VlmPipelineOptions(
+    #     enable_remote_services=True  # <-- this is required!
+    # )
+    #
+    # vlm_pipeline_options.vlm_options = ollama_vlm_options(
+    #     # model="granite3.2-vision:2b",
+    #     model="granite3.2-vision:2b-fp16",
+    #     prompt="OCR the full page to markdown.",
+    # )
+    #
+    # converter = DocumentConverter(
+    #     format_options={
+    #         InputFormat.PDF: PdfFormatOption(
+    #             pipeline_options=vlm_pipeline_options,
+    #             pipeline_cls=VlmPipeline,
+    #         )
+    #     }
+    # )
 
     # # ----------------------------
 
@@ -131,6 +141,23 @@ def main():
 
     _log.info("导出结果到 Markdown 完成 ..........")
 
+    # -----------------
+
+    _log.info("开始分块 ..........")
+    doc = conv_result.document
+
+    # 配置分块
+    chunker = HybridChunker()
+    chunk_iter = chunker.chunk(dl_doc=doc)
+
+    for i, chunk in enumerate(chunk_iter):
+        print(f"=== {i} ===")
+        print(f"chunk.text:\n{f'{chunk.text[:300]}…'!r}")
+
+        enriched_text = chunker.serialize(chunk=chunk)
+        print(f"chunker.serialize(chunk):\n{f'{enriched_text[:300]}…'!r}")
+
+        print()
 
 if __name__ == '__main__':
     main()
