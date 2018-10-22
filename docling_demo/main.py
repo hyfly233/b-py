@@ -17,9 +17,9 @@ from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 
 # from docling.pipeline.vlm_pipeline import VlmPipeline
 
-SOURCE = "./pdf/2206.01062v1.pdf"
-# SOURCE = "./pdf/2503.00004v1.pdf"
-# SOURCE = "./pdf/2504.20103v1.pdf"
+SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
+# SOURCE = "./pdf/2503.00004v1-大量公式.pdf"
+# SOURCE = "./pdf/2504.20485v1-代码.pdf"
 
 
 logging.basicConfig(
@@ -154,8 +154,8 @@ def main():
         print(f"=== {i} ===")
         print(f"chunk.text:\n{f'{chunk.text[:300]}…'!r}")
 
-        enriched_text = chunker.serialize(chunk=chunk)
-        print(f"chunker.serialize(chunk):\n{f'{enriched_text[:300]}…'!r}")
+        enriched_text = chunker.contextualize(chunk=chunk)
+        print(f"chunker.contextualize(chunk):\n{f'{enriched_text[:300]}…'!r}")
 
         print()
 
