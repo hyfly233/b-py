@@ -18,10 +18,9 @@ from docling_core.transforms.chunker.tokenizer.huggingface import HuggingFaceTok
 
 # from docling.pipeline.vlm_pipeline import VlmPipeline
 
-# SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
+SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
 # SOURCE = "./pdf/2503.00004v1-大量公式.pdf"
 # SOURCE = "./pdf/2504.20485v1-代码.pdf"
-SOURCE = "/Users/flyhy/Documents/test01.pdf"
 
 
 logging.basicConfig(
