@@ -12,15 +12,15 @@ from docling.datamodel.pipeline_options import (
     ResponseFormat,
     PdfPipelineOptions, TableStructureOptions, OcrMacOptions,
 )
-from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.document_converter import DocumentConverter, PdfFormatOption, WordFormatOption
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
-from docling_core.transforms.chunker.tokenizer.huggingface import HuggingFaceTokenizer
 
 # from docling.pipeline.vlm_pipeline import VlmPipeline
 
-SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
+# SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
 # SOURCE = "./pdf/2503.00004v1-大量公式.pdf"
 # SOURCE = "./pdf/2504.20485v1-代码.pdf"
+SOURCE = "./pdf/Doc3.pdf"
 
 
 logging.basicConfig(
@@ -88,6 +88,9 @@ def main():
     converter = DocumentConverter(
         format_options={
             InputFormat.PDF: PdfFormatOption(
+                pipeline_options=pdf_pipeline_options
+            ),
+            InputFormat.DOCX: WordFormatOption(
                 pipeline_options=pdf_pipeline_options
             )
         }
