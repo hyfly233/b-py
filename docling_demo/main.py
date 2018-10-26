@@ -1,3 +1,4 @@
+import json
 import logging
 import multiprocessing
 import time
@@ -10,7 +11,7 @@ from docling.datamodel.pipeline_options import (
     AcceleratorOptions,
     ApiVlmOptions,
     ResponseFormat,
-    PdfPipelineOptions, TableStructureOptions, OcrMacOptions,
+    PdfPipelineOptions, TableStructureOptions, EasyOcrOptions,
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption, WordFormatOption
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
@@ -20,7 +21,19 @@ from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 # SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
 # SOURCE = "./pdf/2503.00004v1-大量公式.pdf"
 # SOURCE = "./pdf/2504.20485v1-代码.pdf"
-SOURCE = "./pdf/Doc3.pdf"
+# SOURCE = "./pdf/Doc3.pdf"
+
+SOURCE = "./docx/11-单元格斜线.docx"
+# SOURCE = "./pdf/11-单元格斜线.pdf"
+
+# SOURCE = "./docx/15-公式.docx"
+# SOURCE = "./pdf/15-公式.pdf"
+
+# SOURCE = "./docx/18-单元格内容换行.docx"
+# SOURCE = "./pdf/18-单元格内容换行.pdf"
+
+# SOURCE = "./docx/19-复杂表格.docx"
+# SOURCE = "./pdf/19-复杂表格.pdf"
 
 
 logging.basicConfig(
@@ -78,8 +91,14 @@ def main():
             device=AcceleratorDevice.CUDA,
             cuda_use_flash_attention2=True,
         )
+    elif torch.mps.is_available():
+        # pdf_pipeline_options.ocr_options = OcrMacOptions()
+        pdf_pipeline_options.ocr_options = EasyOcrOptions()
+        pdf_pipeline_options.accelerator_options = AcceleratorOptions(
+            num_threads=cpu_cores,
+            device=AcceleratorDevice.MPS,
+        )
     else:
-        pdf_pipeline_options.ocr_options = OcrMacOptions()
         pdf_pipeline_options.accelerator_options = AcceleratorOptions(
             num_threads=cpu_cores,
             device=AcceleratorDevice.AUTO,
@@ -139,11 +158,18 @@ def main():
         output_dir.mkdir(parents=True, exist_ok=True)
         doc_filename = conv_result.input.file.stem
 
+        # 将结果输出到 json 文件
+        with (output_dir / f"{doc_filename}.json").open("w", encoding="utf-8") as file:
+            json.dump(conv_result.document.export_to_dict(), file, indent=4)  # indent参数使输出的JSON格式化，更易读
+
         _log.info("开始导出结果到 Markdown ..........")
 
         # 导出到 markdown
         with (output_dir / f"{doc_filename}.md").open("w", encoding="utf-8") as fp:
             fp.write(conv_result.document.export_to_markdown())
+
+        # with (output_dir / f"{doc_filename}.html").open("w", encoding="utf-8") as fp:
+        #     fp.write(conv_result.document.export_to_html())
 
         _log.info("导出结果到 Markdown 完成 ..........")
 
