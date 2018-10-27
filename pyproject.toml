@@ -23,6 +23,7 @@ dependencies = [
     "nuitka>=2.7",
     "numpy>=2.2.5",
     "ocrmac>=1.0.0",
+    "openai>=1.77.0",
     "pandas>=2.2.3",
     "pydantic>=2.11.4",
     "pyhocon>=0.3.61",
