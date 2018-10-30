@@ -30,6 +30,7 @@ dependencies = [
     "pyinstaller>=6.13.0",
     "pyjwt>=2.10.1",
     "pysnmplib>=5.0.24",
+    "python-dotenv>=1.1.0",
     "requests>=2.32.3",
     "snmpclitools>=0.7.2",
     "starlette>=0.46.2",
