@@ -200,7 +200,7 @@ requires-dist = [
     { name = "langchain-core", specifier = ">=0.3.58" },
     { name = "langchain-ollama", specifier = ">=0.3.2" },
     { name = "mysql-connector-python", specifier = ">=9.3.0" },
-    { name = "nuitka", specifier = ">=2.7" },
+    { name = "nuitka", specifier = ">=2.7.2" },
     { name = "numpy", specifier = ">=2.2.5" },
     { name = "ocrmac", specifier = ">=1.0.0" },
     { name = "openai", specifier = ">=1.78.1" },
@@ -888,13 +888,13 @@ wheels = [
 
 [[package]]
 name = "nuitka"
-version = "2.7"
+version = "2.7.2"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
 dependencies = [
     { name = "ordered-set" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/2d/c8/ff5f8ccdd112101d0026006887708083db587a02b9379ea726f8f9a93c03/Nuitka-2.7.tar.gz", hash = "sha256:b0d5ad394cbfe93820116cfe94605e50bb20f5707b6fb41e09c421a7c9a2c53d", size = 3885354 }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/68/78/ccc32d807985cf9b8f8578f921ed087a7964280be0851142d31d5abfab1e/Nuitka-2.7.2.tar.gz", hash = "sha256:4e8d315d6cd5370ef346f1243849681170f649bc9f6e4c10310f58b60861ef1d", size = 3883274 }
 
 [[package]]
 name = "numpy"
