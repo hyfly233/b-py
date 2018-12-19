@@ -188,7 +188,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.18" },
     { name = "asyncclick", specifier = ">=8.1.8" },
     { name = "asyncio", specifier = ">=3.4.3" },
-    { name = "click", specifier = ">=8.1.7" },
+    { name = "click", specifier = ">=8.1.8" },
     { name = "fastapi", specifier = ">=0.115.12" },
     { name = "hf-xet", specifier = ">=1.1.0" },
     { name = "httpx", specifier = ">=0.28.0" },
