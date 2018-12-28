@@ -1,11 +1,14 @@
+import base64
+from io import BytesIO
 from typing import List, Iterator
 
+from PIL import Image
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import Tool
-from langchain_ollama import OllamaLLM
+from langchain_ollama import OllamaLLM, ChatOllama
 
 
 class StreamingCallback(BaseCallbackHandler):
@@ -252,25 +255,35 @@ def get_weather(location: str) -> str:
     # 下面是模拟的返回结果
     return f"{location}的天气：晴天，25°C，湿度60%"
 
+
+def encode_image_to_base64(image_path):
+    # 打开并编码图片为base64
+    with Image.open(image_path) as img:
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    return img_str
+
+
 # 使用示例
 if __name__ == "__main__":
     # 创建 LangChain Agent
-    agent = OllamaLangChainAgent(model_name="llama3")
-
-    # 定义工具
-    tools = [
-        Tool(
-            name="weather",
-            description="获取指定地点的天气信息，输入应该是城市名或地区名",
-            func=get_weather
-        )
-    ]
-
-    # 添加工具
-    agent.add_tools(tools)
-
-    # 交互式聊天
-    print("AI Agent 已准备好。输入 'exit' 退出。")
+    # agent = OllamaLangChainAgent(model_name="llama3")
+    #
+    # # 定义工具
+    # tools = [
+    #     Tool(
+    #         name="weather",
+    #         description="获取指定地点的天气信息，输入应该是城市名或地区名",
+    #         func=get_weather
+    #     )
+    # ]
+    #
+    # # 添加工具
+    # agent.add_tools(tools)
+    #
+    # # 交互式聊天
+    # print("AI Agent 已准备好。输入 'exit' 退出。")
 
     # 普通查询
     # while True:
@@ -282,13 +295,34 @@ if __name__ == "__main__":
     #     print(f"\nAI: {response}")
 
     # 流式查询示例
-    while True:
-        user_input = input("\n用户: ")
-        if user_input.lower() == 'exit':
-            break
+    # while True:
+    #     user_input = input("\n用户: ")
+    #     if user_input.lower() == 'exit':
+    #         break
+    #
+    #     print("\nAI: ", end="", flush=True)
+    #     # 使用流式输出
+    #     for chunk in agent.query_stream(user_input):
+    #         print(chunk, end="", flush=True)
+    #     print()
 
-        print("\nAI: ", end="", flush=True)
-        # 使用流式输出
-        for chunk in agent.query_stream(user_input):
-            print(chunk, end="", flush=True)
-        print()
+    # 传输图片
+    model = ChatOllama(model="granite3.2-vision:2b")
+    image_path = ""
+    base64_image = encode_image_to_base64(image_path)
+
+    message = HumanMessage(
+        content=[
+            {
+                "type": "text",
+                "text": "这张图片里有什么？"
+            },
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
+            }
+        ]
+    )
+
+    response = model.invoke([message])
+    print(response.content)
