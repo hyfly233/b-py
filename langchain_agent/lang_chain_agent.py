@@ -1,8 +1,10 @@
 import base64
+import os
 from io import BytesIO
 from typing import List, Iterator
 
 from PIL import Image
+from dotenv import load_dotenv
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage
@@ -10,6 +12,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import Tool
 from langchain_ollama import OllamaLLM, ChatOllama
 
+# 加载 .env 文件
+load_dotenv()
 
 class StreamingCallback(BaseCallbackHandler):
     """自定义流式输出回调处理器"""
@@ -308,7 +312,7 @@ if __name__ == "__main__":
 
     # 传输图片
     model = ChatOllama(model="granite3.2-vision:2b")
-    image_path = ""
+    image_path = os.getenv('IMAGE_PATH')
     base64_image = encode_image_to_base64(image_path)
 
     message = HumanMessage(
