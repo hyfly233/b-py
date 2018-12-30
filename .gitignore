@@ -12,7 +12,7 @@ wheels/
 .idea
 models
 
-*/.env
+.env
 *.spec
 *.log
 *.pid
