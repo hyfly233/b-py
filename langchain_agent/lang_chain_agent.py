@@ -311,15 +311,21 @@ if __name__ == "__main__":
     #     print()
 
     # 传输图片
-    model = ChatOllama(model="granite3.2-vision:2b")
+    model = ChatOllama(model="gemma3:4b")
     image_path = os.getenv('IMAGE_PATH')
     base64_image = encode_image_to_base64(image_path)
+
+    msg = """
+你是一个图片分类专家，专门从事图片分类任务。
+#任务描述#
+图片分类，判断图片中是否出现以下内容：表格、统计图、文本、流程图。
+"""
 
     message = HumanMessage(
         content=[
             {
                 "type": "text",
-                "text": "这张图片里有什么？"
+                "text": msg
             },
             {
                 "type": "image_url",
