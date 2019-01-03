@@ -1,16 +1,21 @@
+import os
+
 import torch
 from PIL import Image
+from dotenv import load_dotenv
 from torch import Tensor
 from transformers import TableTransformerForObjectDetection, DetrImageProcessor
 
 from table_transformer_demo.utils import plot_results
 
-model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-transformer-detection")
+# 加载 .env 文件
+load_dotenv()
 
+model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-transformer-detection")
 
 def main():
     # file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename="example_pdf.png")
-    file_path = "/Users/flyhy/Desktop/test_2.png"
+    file_path = os.getenv('IMAGE_PATH')
 
     image = Image.open(file_path).convert("RGB")
     width, height = image.size
