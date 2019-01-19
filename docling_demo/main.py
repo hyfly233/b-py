@@ -1,8 +1,10 @@
 import json
 import logging
 import multiprocessing
+import os
 import time
 from pathlib import Path
+from typing import List
 
 import torch.cuda
 from docling.datamodel.base_models import InputFormat
@@ -13,18 +15,20 @@ from docling.datamodel.pipeline_options import (
     ResponseFormat,
     PdfPipelineOptions,
     TableStructureOptions,
-    EasyOcrOptions,
     OcrMacOptions,
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption, WordFormatOption
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
+from docling_core.types import DoclingDocument
+from docling_core.types.doc import TableItem, ProvenanceItem
+from dotenv import load_dotenv
 
 # from docling.pipeline.vlm_pipeline import VlmPipeline
 
-SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
-# SOURCE = "./pdf/2503.00004v1-大量公式.pdf"
-# SOURCE = "./pdf/2504.20485v1-代码.pdf"
-# SOURCE = "./pdf/Doc3.pdf"
+# 加载 .env 文件
+load_dotenv()
+
+SOURCE = os.getenv('SOURCE')
 
 
 logging.basicConfig(
@@ -142,12 +146,58 @@ def main():
 
         end_time = time.time()
         _log.info(f"转换文档结束，完成时间 [{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))}] ..........")
-        _log.info(f"转换文档耗时 [{end_time - start_time}] s ..........")
+        _log.info(f"转换文档状态 {conv_result.status} 耗时 [{end_time - start_time}] s ..........")
 
         # 导出
         output_dir = Path("output")
         output_dir.mkdir(parents=True, exist_ok=True)
         doc_filename = conv_result.input.file.stem
+
+        _log.info(f"###########################")
+
+        _log.info(f"文档的页数 {len(conv_result.pages)} ---- ")
+        for i, page in enumerate(conv_result.pages):
+            _log.info(f"第 {i + 1} 页 - "
+                      f"pageNo {page.page_no} - "
+                      f"高度: {page.size.height} 宽度: {page.size.width} - "
+                      )
+
+        document: DoclingDocument = conv_result.document
+
+        # 获取 table 的数量、位置
+        tables: List[TableItem] = document.tables
+        _log.info(f"文档的表格数量 {len(tables)} ---- ")
+        for i, table in enumerate(tables):
+            # 单独导出表格
+            with (output_dir / f"{doc_filename}_{i}.md").open("w", encoding="utf-8") as fp:
+                fp.write(conv_result.document.export_to_markdown())
+
+            # ？？？
+            location_tokens = table.get_location_tokens(doc=document)
+
+            prov: List[ProvenanceItem] = table.prov
+            location: str = ""
+            for e in prov:
+                page_no = e.page_no
+                bbox = e.bbox
+
+                t_height = bbox.height
+                t_width = bbox.width
+
+                location += (
+                    f"第 {page_no} 页 - "
+                    f"表格高度: {t_height} 宽度: {t_width} - "
+                    f"表格位置: left {bbox.l} top {bbox.t} right {bbox.r} bottom {bbox.b} - "
+                )
+
+            _log.info(f"第 {i + 1} 个表格 - "
+                      f"location_tokens：{location_tokens} - \n"
+                      f"位置详情 {location} - "
+                      )
+
+        _log.info(f"###########################")
+
+
 
         # 将结果输出到 json 文件
         with (output_dir / f"{doc_filename}.json").open("w", encoding="utf-8") as file:
@@ -159,8 +209,8 @@ def main():
         with (output_dir / f"{doc_filename}.md").open("w", encoding="utf-8") as fp:
             fp.write(conv_result.document.export_to_markdown())
 
-        # with (output_dir / f"{doc_filename}.html").open("w", encoding="utf-8") as fp:
-        #     fp.write(conv_result.document.export_to_html())
+        with (output_dir / f"{doc_filename}.html").open("w", encoding="utf-8") as fp:
+            fp.write(conv_result.document.export_to_html())
 
         _log.info("导出结果到 Markdown 完成 ..........")
 
