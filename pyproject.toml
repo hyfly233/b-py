@@ -23,7 +23,6 @@ dependencies = [
     "mysql-connector-python>=9.3.0",
     "nuitka>=2.7.2",
     "numpy>=2.2.5",
-    "ocrmac>=1.0.0",
     "openai>=1.78.1",
     "pandas>=2.2.3",
     "pillow>=11.2.1",
@@ -42,7 +41,6 @@ dependencies = [
     "timm>=1.0.15",
     "torch>=2.7.0",
     "torchvision>=0.20.1",
-    "transformers>=4.51.3",
     "uvicorn>=0.34.2",
 ]
 
