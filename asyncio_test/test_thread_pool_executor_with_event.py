@@ -4,7 +4,10 @@ import logging
 import threading
 import time
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+)
 
 # 创建一个全局的 Event 对象，用于通知线程停止 ??????????????????
 stop_event = threading.Event()
@@ -38,7 +41,7 @@ async def main():
     await asyncio.gather(task_01, task_02)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

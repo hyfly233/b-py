@@ -5,16 +5,17 @@ import os
 import uvicorn
 from fastapi import FastAPI, APIRouter
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(asctime)s - %(filename)s:%(lineno)d - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s - %(asctime)s - %(filename)s:%(lineno)d - %(message)s",
+)
 
 
 async def start_fast_api(httpPort: int):
     app = FastAPI(title="test", description="test", version="1.0.0")
 
     router = APIRouter(
-        prefix="/test",
-        tags=["test"],
-        responses={404: {"description": "Not found"}}
+        prefix="/test", tags=["test"], responses={404: {"description": "Not found"}}
     )
 
     @router.get("/getPort")
@@ -30,10 +31,7 @@ async def start_fast_api(httpPort: int):
 
 
 async def main():
-    await asyncio.gather(
-        start_fast_api(23333),
-        start_fast_api(23334)
-    )
+    await asyncio.gather(start_fast_api(23333), start_fast_api(23334))
 
 
 if __name__ == "__main__":

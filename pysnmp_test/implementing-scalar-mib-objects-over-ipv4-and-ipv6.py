@@ -15,7 +15,7 @@ Either of the following Net-SNMP commands will walk this Agent:
 | $ snmpwalk -v2c -c public 127.0.0.1 .1.3.6
 | $ snmpwalk -v2c -c public udp6:[::1] .1.3.6
 
-The Command Receiver below uses two distinct transports for communication 
+The Command Receiver below uses two distinct transports for communication
 with Command Generators - UDP over IPv4 and UDP over IPv6.
 
 
@@ -25,6 +25,7 @@ snmpget -v2c -c public 127.0.0.1:4161 .1.3.6.1.2.1.1.3.0
 snmpget -v2c -c public 127.0.0.1:4161 .1.3.6.1.2.1.1.3.0 .1.3.6.1.2.1.1.1.0
 snmpget -v1 -c public 127.0.0.1:4161 .1.3.6.1.2.1.1.3.0 .1.3.6.1.2.1.1.1.0
 """  #
+
 import bisect
 import time
 
@@ -113,9 +114,7 @@ class Uptime:
         # )
 
         # module 'pysnmp.proto.api.v1' has no attribute 'Bits'
-        return api.protoModules[protoVer].Bits(
-            "xxxxx"
-        )
+        return api.protoModules[protoVer].Bits("xxxxx")
 
         # return api.protoModules[protoVer].IpAddress(
         #     "127.0.0.1"
@@ -206,7 +205,10 @@ class CustomOid(object):
 
 
 mibInstr = (
-    SysDescr(), Uptime(), CustomOid(".1.3.6.1.2.1.1.7.0", "OctetString", "66666"))  # sorted by object name
+    SysDescr(),
+    Uptime(),
+    CustomOid(".1.3.6.1.2.1.1.7.0", "OctetString", "66666"),
+)  # sorted by object name
 
 mibInstrIdx = {}
 for mibVar in mibInstr:

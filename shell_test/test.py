@@ -5,21 +5,24 @@ import threading
 import uvicorn
 from fastapi import FastAPI, APIRouter
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(asctime)s - %(filename)s:%(lineno)d - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s - %(asctime)s - %(filename)s:%(lineno)d - %(message)s",
+)
 
 
 def start_fast_api(httpPort: int):
     app = FastAPI(title="test", description="test", version="1.0.0")
 
     router = APIRouter(
-        prefix="/test",
-        tags=["test"],
-        responses={404: {"description": "Not found"}}
+        prefix="/test", tags=["test"], responses={404: {"description": "Not found"}}
     )
 
     @router.get("/getPort")
     def getPort():
-        logging.info(f"getPort: {httpPort} pid: {os.getgid()} ppid: {os.getppid()} tid: {threading.get_ident()}")
+        logging.info(
+            f"getPort: {httpPort} pid: {os.getgid()} ppid: {os.getppid()} tid: {threading.get_ident()}"
+        )
         return httpPort
 
     app.include_router(router)

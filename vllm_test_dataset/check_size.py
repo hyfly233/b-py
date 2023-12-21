@@ -3,7 +3,7 @@ import json
 
 def check_dataset_size(dataset_path):
     """检查数据集的实际大小"""
-    with open(dataset_path, 'r', encoding='utf-8') as f:
+    with open(dataset_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     print(f"数据集路径: {dataset_path}")

@@ -12,21 +12,30 @@ from pysnmp.error import PySnmpError
 from pysnmp.proto import api
 from pysnmp.proto.api import v2c
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+)
 
 
 class CustomAsyncoreDispatcher(AsyncoreDispatcher):
     def runDispatcher(self, timeout=0.0):
         while self.jobsArePending() or self.transportsAreWorking():
             try:
-                loop(timeout or self.getTimerResolution(),
-                     use_poll=True, map=super().getSocketMap(), count=1)
+                loop(
+                    timeout or self.getTimerResolution(),
+                    use_poll=True,
+                    map=super().getSocketMap(),
+                    count=1,
+                )
             except KeyboardInterrupt:
                 raise
             except:
                 # 自定义异常处理逻辑
                 # raise PySnmpError('poll error: %s' % ';'.join(format_exception(*exc_info())))
-                pyErr = PySnmpError('poll error: %s' % ';'.join(format_exception(*exc_info())))
+                pyErr = PySnmpError(
+                    "poll error: %s" % ";".join(format_exception(*exc_info()))
+                )
                 logging.error(pyErr)
             self.handleTimerTick(time.time())
 
@@ -56,9 +65,7 @@ class Uptime:
     def __call__(self, protoVer):
         # return api.protoModules[protoVer].TimeTicks((time.time() - self.birthday) * 100)
 
-        return api.protoModules[protoVer].Bits(
-            "xxxxx"
-        )
+        return api.protoModules[protoVer].Bits("xxxxx")
 
 
 mibInstr = [Uptime()]  # sorted by object name

@@ -2,6 +2,7 @@
 """
 创建更真实的基准测试数据集
 """
+
 import json
 import random
 from typing import List, Dict
@@ -15,14 +16,14 @@ class BenchmarkDatasetGenerator:
             "今天天气如何？",
             "Python是什么？",
             "你好，你是谁？",
-            "什么是AI？"
+            "什么是AI？",
         ]
 
         self.medium_questions = [
             "请解释机器学习和深度学习的区别，并举例说明它们的应用场景。",
             "如何设计一个高并发的Web服务架构？请详细说明各个组件的作用。",
             "分析当前人工智能技术的发展趋势，以及对各行业可能产生的影响。",
-            "请编写一个Python函数来实现二分搜索算法，并分析其时间复杂度。"
+            "请编写一个Python函数来实现二分搜索算法，并分析其时间复杂度。",
         ]
 
         self.long_questions = [
@@ -38,7 +39,6 @@ def process_data(data_list):
     return result
 
 同时请解释为什么这样的优化能够提升性能，以及在什么情况下这种优化最有效。""",
-
             """在分布式系统设计中，CAP定理是一个重要的概念。请详细解释：
 1. CAP定理的具体内容和含义
 2. 为什么不能同时满足所有三个特性
@@ -46,14 +46,16 @@ def process_data(data_list):
 4. 举例说明不同类型的分布式系统是如何处理CAP权衡的
 5. 现代分布式系统如何通过技术手段尽可能地平衡这三个特性
 
-请结合具体的技术实现和真实案例来说明。"""
+请结合具体的技术实现和真实案例来说明。""",
         ]
 
-    def generate_dataset(self,
-                         total_samples: int = 300,
-                         short_ratio: float = 0.3,
-                         medium_ratio: float = 0.5,
-                         long_ratio: float = 0.2) -> List[Dict]:
+    def generate_dataset(
+        self,
+        total_samples: int = 300,
+        short_ratio: float = 0.3,
+        medium_ratio: float = 0.5,
+        long_ratio: float = 0.2,
+    ) -> List[Dict]:
         """生成基准测试数据集"""
 
         dataset = []
@@ -88,13 +90,13 @@ def process_data(data_list):
         return {
             "conversations": [
                 {"from": "human", "value": question},
-                {"from": "gpt", "value": "这是一个测试回答。"}  # 占位符
+                {"from": "gpt", "value": "这是一个测试回答。"},  # 占位符
             ]
         }
 
     def save_dataset(self, dataset: List[Dict], filename: str):
         """保存数据集到文件"""
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(dataset, f, ensure_ascii=False, indent=2)
 
         print(f"✅ 数据集已保存到: {filename}")

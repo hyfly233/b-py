@@ -5,7 +5,9 @@ from pysnmp.hlapi.asyncio import *
 
 # 发送 trap 时 sendNotification 的参数
 class SendTrapArg(object):
-    def __init__(self, targetIp, targetPort, communityIndex="public", mpModel=0, step=0):
+    def __init__(
+        self, targetIp, targetPort, communityIndex="public", mpModel=0, step=0
+    ):
         self.targetIp = targetIp
         self.targetPort = targetPort
         self.communityIndex = communityIndex
@@ -28,7 +30,7 @@ async def sendTrap(snmpEngine, sendTrapArg, varBinds):
         UdpTransportTarget((sendTrapArg.targetIp, sendTrapArg.targetPort)),
         ContextData(),
         "trap",
-        varBinds
+        varBinds,
     )
 
     print("----------------")
@@ -76,20 +78,21 @@ async def main(ip: str, port: int):
     # varBinds0 -----------
     varBinds0 = NotificationType(ObjectIdentity("1.3.6.1.6.3.1.1.5.2")).addVarBinds(
         ("1.3.6.1.6.3.1.1.4.3.0", "1.3.6.1.4.1.20408.4.1.1.2"),
-        ("1.3.6.1.2.1.1.1.0", OctetString("my system"))
+        ("1.3.6.1.2.1.1.1.0", OctetString("my system")),
     )
     # varBinds1 -----------
-    varBinds1 = NotificationType(ObjectIdentity('SNMPv2-MIB', 'authenticationFailure')).addVarBinds(
-        ("1.3.6.2.2.1", OctetString("xxxxxxx")))
+    varBinds1 = NotificationType(
+        ObjectIdentity("SNMPv2-MIB", "authenticationFailure")
+    ).addVarBinds(("1.3.6.2.2.1", OctetString("xxxxxxx")))
 
     # varBinds2 -----------
     varBinds2 = NotificationType(ObjectIdentity("1.3.6.1.6.3.1.1.5.0")).addVarBinds(
         ("1.3.6.2.2.1.1.2.0", OctetString("xxxxxxx")),
-        ("1.3.6.1.2.1.1.1.0", OctetString("my system"))
+        ("1.3.6.1.2.1.1.1.0", OctetString("my system")),
     )
 
     # varBinds3 -----------
-    varBinds3 = ObjectType(ObjectIdentity('SNMPv2-MIB', 'sysDescr', 0), 'Linux i386')
+    varBinds3 = ObjectType(ObjectIdentity("SNMPv2-MIB", "sysDescr", 0), "Linux i386")
 
     # varBinds4 -----------
     test_list = []
@@ -109,7 +112,7 @@ async def main(ip: str, port: int):
         OidObj("1.3.6.1.2.1.2.2.1.10.1", "12345", "integer"),
         OidObj("1.3.6.1.2.1.4.20.1.1.192.168.0.1", "192.168.0.1", "ipaddress"),
         OidObj("1.3.6.1.2.1.1.7.0", "1", "boolean"),  # 设置为 boolean 值 true
-        OidObj("1.3.6.1.2.1.1.9.0", "2", "enum")  # 设置为 enum 值 2
+        OidObj("1.3.6.1.2.1.1.9.0", "2", "enum"),  # 设置为 enum 值 2
     ]
 
     var_binds = []
@@ -124,13 +127,17 @@ async def main(ip: str, port: int):
         elif obj.dataType == "ipaddress":
             var_binds.append((ObjectIdentity(obj.oid), IpAddress(obj.strValue)))
         elif obj.dataType == "boolean":
-            var_binds.append((ObjectIdentity(obj.oid), Integer(1 if obj.strValue == "1" else 0)))
+            var_binds.append(
+                (ObjectIdentity(obj.oid), Integer(1 if obj.strValue == "1" else 0))
+            )
         elif obj.dataType == "enum":
             var_binds.append((ObjectIdentity(obj.oid), Integer(int(obj.strValue))))
         else:
             raise ValueError(f"Unsupported data type: {obj.dataType}")
 
-    varBinds5 = NotificationType(ObjectIdentity("1.3.6.1.6.3.1.1.5.2")).addVarBinds(*var_binds)
+    varBinds5 = NotificationType(ObjectIdentity("1.3.6.1.6.3.1.1.5.2")).addVarBinds(
+        *var_binds
+    )
 
     tasks = [
         # stepSendTrap(snmpEngine, SendTrapArg(targetIp=targetIp, targetPort=targetPort, mpModel=0), varBinds0),
@@ -138,7 +145,11 @@ async def main(ip: str, port: int):
         # stepSendTrap(snmpEngine, SendTrapArg(targetIp=targetIp, targetPort=targetPort, mpModel=1), varBinds2),
         # stepSendTrap(snmpEngine, SendTrapArg(targetIp=targetIp, targetPort=targetPort, mpModel=0), varBinds3),
         # stepSendTrap(snmpEngine, SendTrapArg(targetIp=targetIp, targetPort=targetPort, mpModel=1), varBinds4),
-        stepSendTrap(snmpEngine, SendTrapArg(targetIp=targetIp, targetPort=targetPort, mpModel=1), varBinds5),
+        stepSendTrap(
+            snmpEngine,
+            SendTrapArg(targetIp=targetIp, targetPort=targetPort, mpModel=1),
+            varBinds5,
+        ),
     ]
 
     try:
@@ -147,7 +158,7 @@ async def main(ip: str, port: int):
         snmpEngine.transportDispatcher.closeDispatcher()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ip = "127.0.0.1"
     port = 4162
 

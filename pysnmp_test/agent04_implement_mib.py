@@ -9,7 +9,10 @@ from pysnmp.carrier.asyncore.dispatch import AsyncoreDispatcher
 from pysnmp.proto import api
 from pysnmp.proto.api import v2c
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+)
 
 
 class SysDescr:
@@ -65,9 +68,7 @@ class Uptime:
         # return api.protoModules[protoVer].TimeTicks((time.time() - self.birthday) * 100)
 
         # module 'pysnmp.proto.api.v1' has no attribute 'Bits'
-        return api.protoModules[protoVer].Bits(
-            "xxxxx"
-        )
+        return api.protoModules[protoVer].Bits("xxxxx")
 
 
 async def task01():
@@ -181,7 +182,7 @@ async def main():
     await asyncio.gather(task_01, task_02)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

@@ -15,6 +15,7 @@ from langchain_ollama import OllamaLLM, ChatOllama
 # 加载 .env 文件
 load_dotenv()
 
+
 class StreamingCallback(BaseCallbackHandler):
     """自定义流式输出回调处理器"""
 
@@ -26,11 +27,10 @@ class StreamingCallback(BaseCallbackHandler):
         self.text += token
         yield token
 
+
 class OllamaLangChainAgent:
     def __init__(
-            self,
-            model_name: str = "llama3",
-            base_url: str = "http://localhost:11434"
+        self, model_name: str = "llama3", base_url: str = "http://localhost:11434"
     ):
         """
         初始化基于 LangChain 的 Ollama Agent，使用 ReAct 模式
@@ -43,11 +43,7 @@ class OllamaLangChainAgent:
         self.base_url = base_url
 
         # 初始化 OllamaLLM
-        self.llm = OllamaLLM(
-            model=model_name,
-            base_url=base_url,
-            temperature=0.7
-        )
+        self.llm = OllamaLLM(model=model_name, base_url=base_url, temperature=0.7)
 
         # 初始化工具列表
         self.tools = []
@@ -62,26 +58,17 @@ class OllamaLangChainAgent:
         # 构建 Agent (初始时没有工具)
         self._build_agent()
 
-    def add_tool(
-            self,
-            tool: Tool
-    ):
+    def add_tool(self, tool: Tool):
         """添加工具到 Agent"""
         self.tools.append(tool)
         # 重新构建 Agent 以包含新工具
         self._build_agent()
 
-    def add_tools(
-            self,
-            tools: List[Tool]
-    ):
+    def add_tools(self, tools: List[Tool]):
         self.tools.extend(tools)
         self._build_agent()
 
-    def set_system_prompt(
-            self,
-            prompt: str
-    ):
+    def set_system_prompt(self, prompt: str):
         self.system_prompt = prompt
         self._build_agent()
 
@@ -115,18 +102,14 @@ Question: {{input}}
         prompt = ChatPromptTemplate.from_template(react_template)
 
         # 创建 ReAct Agent
-        react_agent = create_react_agent(
-            llm=self.llm,
-            tools=self.tools,
-            prompt=prompt
-        )
+        react_agent = create_react_agent(llm=self.llm, tools=self.tools, prompt=prompt)
 
         # 创建 Agent 执行器
         self.agent_executor = AgentExecutor(
             agent=react_agent,
             tools=self.tools,
             verbose=False,
-            handle_parsing_errors=True
+            handle_parsing_errors=True,
         )
 
         # 创建直接聊天提示
@@ -143,10 +126,7 @@ Question: {{input}}
 """
         self.chat_prompt = ChatPromptTemplate.from_template(self.chat_template)
 
-    def query(
-            self,
-            user_input: str
-    ) -> str:
+    def query(self, user_input: str) -> str:
         """向 Agent 发送查询并获取回复"""
         try:
             # 准备历史对话文本
@@ -157,10 +137,9 @@ Question: {{input}}
                     chat_history_text += f"AI: {self.chat_history[i + 1].content}\n"
 
             # 执行查询
-            result = self.agent_executor.invoke({
-                "input": user_input,
-                "chat_history": chat_history_text
-            })
+            result = self.agent_executor.invoke(
+                {"input": user_input, "chat_history": chat_history_text}
+            )
 
             output = result.get("output", "出现了问题，未能获取回复")
 
@@ -172,15 +151,18 @@ Question: {{input}}
         except Exception as e:
             return f"执行过程中出错: {str(e)}"
 
-    def query_stream(
-            self,
-            user_input: str
-    ) -> Iterator[str]:
+    def query_stream(self, user_input: str) -> Iterator[str]:
         """流式查询，返回生成器对象逐步输出回复"""
         # 首先判断是否可能需要工具调用
         # 这是简化版本，假设以下关键词可能触发工具调用
         tool_keywords = [tool.name.lower() for tool in self.tools]
-        tool_keywords.extend([d.split()[0].lower() for tool in self.tools for d in tool.description.split(',')])
+        tool_keywords.extend(
+            [
+                d.split()[0].lower()
+                for tool in self.tools
+                for d in tool.description.split(",")
+            ]
+        )
         may_need_tool = any(keyword in user_input.lower() for keyword in tool_keywords)
 
         try:
@@ -189,10 +171,10 @@ Question: {{input}}
 
             if may_need_tool:
                 # 如果可能需要工具，使用普通非流式模式
-                result = self.agent_executor.invoke({
-                    "input": user_input,
-                    "chat_history": chat_history_text
-                }, stream=True)
+                result = self.agent_executor.invoke(
+                    {"input": user_input, "chat_history": chat_history_text},
+                    stream=True,
+                )
 
                 output = result.get("output", "出现了问题，未能获取回复")
 
@@ -208,9 +190,7 @@ Question: {{input}}
                 streaming_handler = StreamingCallback()
 
                 # 准备流式 LLM 实例
-                llm_with_streaming = self.llm.with_config(
-                    callbacks=[streaming_handler]
-                )
+                llm_with_streaming = self.llm.with_config(callbacks=[streaming_handler])
 
                 # 使用流式 LLM 直接回答
                 chain = self.chat_prompt | llm_with_streaming
@@ -219,10 +199,9 @@ Question: {{input}}
                 full_response = ""
 
                 # 流式生成响应
-                for chunk in chain.stream({
-                    "input": user_input,
-                    "chat_history": chat_history_text
-                }):
+                for chunk in chain.stream(
+                    {"input": user_input, "chat_history": chat_history_text}
+                ):
                     full_response += chunk
                     yield chunk
 
@@ -265,7 +244,7 @@ def encode_image_to_base64(image_path):
     with Image.open(image_path) as img:
         buffered = BytesIO()
         img.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
     return img_str
 
 
@@ -312,7 +291,7 @@ if __name__ == "__main__":
 
     # 传输图片
     model = ChatOllama(model="gemma3:4b")
-    image_path = os.getenv('IMAGE_PATH')
+    image_path = os.getenv("IMAGE_PATH")
     base64_image = encode_image_to_base64(image_path)
 
     msg = """
@@ -323,14 +302,11 @@ if __name__ == "__main__":
 
     message = HumanMessage(
         content=[
-            {
-                "type": "text",
-                "text": msg
-            },
+            {"type": "text", "text": msg},
             {
                 "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-            }
+                "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+            },
         ]
     )
 

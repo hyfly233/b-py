@@ -8,7 +8,10 @@ from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.entity import engine, config
 from pysnmp.entity.rfc3413 import context, cmdrsp
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+)
 
 # 创建一个全局的 Event 对象，用于通知线程停止 ?????????????????????
 stop_event = threading.Event()
@@ -38,7 +41,7 @@ async def task02():
     snmpEngine = engine.SnmpEngine()
 
     config.addTransport(
-        snmpEngine, udp.domainName, udp.UdpTransport().openServerMode(('0.0.0.0', 4161))
+        snmpEngine, udp.domainName, udp.UdpTransport().openServerMode(("0.0.0.0", 4161))
     )
     config.addV1System(snmpEngine, "my-area", "public")
     config.addVacmUser(
@@ -62,7 +65,7 @@ async def main():
     await asyncio.gather(task_01, task_02)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

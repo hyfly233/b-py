@@ -5,11 +5,14 @@ from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.entity import engine, config
 from pysnmp.entity.rfc3413 import context, cmdrsp
 
-'''
+"""
 查看 https://github.com/pysnmp/pysnmp/blob/main/examples/v3arch/asyncio/agent/cmdrsp/multiple-usm-users.py
-'''
+"""
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
+)
 
 # 全局变量
 exit_event = asyncio.Event()
@@ -27,7 +30,7 @@ async def task02():
     snmpEngine = engine.SnmpEngine()
 
     config.addTransport(
-        snmpEngine, udp.domainName, udp.UdpTransport().openServerMode(('0.0.0.0', 4161))
+        snmpEngine, udp.domainName, udp.UdpTransport().openServerMode(("0.0.0.0", 4161))
     )
 
     communityIndex = "my-area"
@@ -35,13 +38,20 @@ async def task02():
 
     config.addV1System(snmpEngine, communityIndex, communityName)
 
-    logging.info(f"Get V1System communityIndex: {communityIndex} communityName: {communityName} ---")
+    logging.info(
+        f"Get V1System communityIndex: {communityIndex} communityName: {communityName} ---"
+    )
 
     securityName = "my-area"
     securityLevel = "noAuthNoPriv"
 
     config.addVacmUser(
-        snmpEngine, 1, securityName, securityLevel, (1, 3, 6, 1, 2, 1), (1, 3, 6, 1, 2, 1)
+        snmpEngine,
+        1,
+        securityName,
+        securityLevel,
+        (1, 3, 6, 1, 2, 1),
+        (1, 3, 6, 1, 2, 1),
     )
 
     snmpContext = context.SnmpContext(snmpEngine)
@@ -61,7 +71,7 @@ async def main():
     await asyncio.gather(task_01, task_02)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

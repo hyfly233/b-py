@@ -6,10 +6,10 @@ from pysnmp.proto import rfc1902, rfc1905, rfc3411, errind, error
 from pysnmp.proto.api import v2c  # backend is always SMIv2 compliant
 from pysnmp.proto.proxy import rfc2576
 
-'''
+"""
 https://github.com/pysnmp/pysnmp/blob/main/pysnmp/entity/rfc3413/cmdrsp.py
 参考 pysnmp.entity.rfc3413.cmdrsp
-'''
+"""
 
 
 # 3.2
@@ -55,7 +55,7 @@ class OwCommandResponderBase:
         self.snmpContext = self.__pendingReqs = None
 
     def sendVarBinds(
-            self, snmpEngine, stateReference, errorStatus, errorIndex, varBinds
+        self, snmpEngine, stateReference, errorStatus, errorIndex, varBinds
     ):
         (
             messageProcessingModel,
@@ -87,7 +87,8 @@ class OwCommandResponderBase:
         print(f"requestId: {requestId} ---------------")
 
         print(
-            f"sendVarBinds: stateReference {stateReference}, errorStatus {errorStatus}, errorIndex {errorIndex}, varBinds {varBinds}")
+            f"sendVarBinds: stateReference {stateReference}, errorStatus {errorStatus}, errorIndex {errorIndex}, varBinds {varBinds}"
+        )
         for varBind in varBinds:  # SNMP response contents
             oid = varBind[0]
             val = varBind[1]
@@ -139,10 +140,10 @@ class OwCommandResponderBase:
             debug.logger & debug.flagApp and debug.logger(
                 f"sendPdu: stateReference {stateReference}, statusInformation {sys.exc_info()[1]}"
             )
-            (
-                snmpSilentDrops,
-            ) = snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder.importSymbols(
-                "__SNMPv2-MIB", "snmpSilentDrops"
+            (snmpSilentDrops,) = (
+                snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder.importSymbols(
+                    "__SNMPv2-MIB", "snmpSilentDrops"
+                )
             )
             snmpSilentDrops.syntax += 1
 
@@ -156,18 +157,18 @@ class OwCommandResponderBase:
             del self.__pendingReqs[stateReference]
 
     def processPdu(
-            self,
-            snmpEngine,
-            messageProcessingModel,
-            securityModel,
-            securityName,
-            securityLevel,
-            contextEngineId,
-            contextName,
-            pduVersion,
-            PDU,
-            maxSizeResponseScopedPDU,
-            stateReference,
+        self,
+        snmpEngine,
+        messageProcessingModel,
+        securityModel,
+        securityName,
+        securityLevel,
+        contextEngineId,
+        contextName,
+        pduVersion,
+        PDU,
+        maxSizeResponseScopedPDU,
+        stateReference,
     ):
         # Agent-side API complies with SMIv2
         if messageProcessingModel == 0:
@@ -178,8 +179,8 @@ class OwCommandResponderBase:
 
         # 3.2.1
         if (
-                PDU.tagSet not in rfc3411.readClassPDUs
-                and PDU.tagSet not in rfc3411.writeClassPDUs
+            PDU.tagSet not in rfc3411.readClassPDUs
+            and PDU.tagSet not in rfc3411.writeClassPDUs
         ):
             raise error.ProtocolError("Unexpected PDU class %s" % PDU.tagSet)
 
@@ -296,18 +297,18 @@ class OwCommandResponderBase:
             errorIndication = statusInformation["errorIndication"]
             # 3.2.5...
             if (
-                    errorIndication == errind.noSuchView
-                    or errorIndication == errind.noAccessEntry
-                    or errorIndication == errind.noGroupName
+                errorIndication == errind.noSuchView
+                or errorIndication == errind.noAccessEntry
+                or errorIndication == errind.noGroupName
             ):
                 raise pysnmp.smi.error.AuthorizationError(name=name, idx=idx)
             elif errorIndication == errind.otherError:
                 raise pysnmp.smi.error.GenError(name=name, idx=idx)
             elif errorIndication == errind.noSuchContext:
-                (
-                    snmpUnknownContexts,
-                ) = snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder.importSymbols(
-                    "__SNMP-TARGET-MIB", "snmpUnknownContexts"
+                (snmpUnknownContexts,) = (
+                    snmpEngine.msgAndPduDsp.mibInstrumController.mibBuilder.importSymbols(
+                        "__SNMP-TARGET-MIB", "snmpUnknownContexts"
+                    )
                 )
                 snmpUnknownContexts.syntax += 1
                 # Request REPORT generation
@@ -324,10 +325,10 @@ class OwCommandResponderBase:
         else:
             # rfc2576: 4.1.2.1
             if (
-                    securityModel == 1
-                    and syntax is not None
-                    and self._counter64Type == syntax.getTagSet()
-                    and self._getNextRequestType == pduType
+                securityModel == 1
+                and syntax is not None
+                and self._counter64Type == syntax.getTagSet()
+                and self._getNextRequestType == pduType
             ):
                 # This will cause MibTree to skip this OID-value
                 raise pysnmp.smi.error.NoAccessError(name=name, idx=idx)
@@ -346,7 +347,7 @@ class GetOwCommandResponder(OwCommandResponderBase):
             stateReference,
             0,
             0,
-            mgmtFun(v2c.apiPDU.getVarBinds(PDU), (acFun, acCtx))
+            mgmtFun(v2c.apiPDU.getVarBinds(PDU), (acFun, acCtx)),
         )
         self.releaseStateInformation(stateReference)
 
@@ -437,8 +438,8 @@ class SetOwCommandResponder(OwCommandResponderBase):
             )
             self.releaseStateInformation(stateReference)
         except (
-                pysnmp.smi.error.NoSuchObjectError,
-                pysnmp.smi.error.NoSuchInstanceError,
+            pysnmp.smi.error.NoSuchObjectError,
+            pysnmp.smi.error.NoSuchInstanceError,
         ):
             e = pysnmp.smi.error.NotWritableError()
             e.update(sys.exc_info()[1])
