@@ -1,65 +1,68 @@
-import random
-
 import torch
 import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
 
+from dataset import TranslationDataset, collate_fn
+from translation_model import Encoder, Decoder, Seq2Seq
 
-class Encoder(nn.Module):
-    def __init__(self, input_dim, emb_dim, hid_dim, n_layers, dropout):
-        super().__init__()
-        self.embedding = nn.Embedding(input_dim, emb_dim)
-        self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
-        self.dropout = nn.Dropout(dropout)
+# 超参数
+INPUT_DIM = 10000
+OUTPUT_DIM = 10000
+ENC_EMB_DIM = 256
+DEC_EMB_DIM = 256
+HID_DIM = 512
+N_LAYERS = 2
+ENC_DROPOUT = 0.5
+DEC_DROPOUT = 0.5
+BATCH_SIZE = 32
+N_EPOCHS = 10
 
-    def forward(self, src):
-        # src: [src_len, batch_size]
-        embedded = self.dropout(self.embedding(src))
-        outputs, (hidden, cell) = self.rnn(embedded)
-        return hidden, cell
+device = (
+    torch.accelerator.current_accelerator().type
+    if torch.accelerator.is_available()
+    else "cpu"
+)
 
+# 示例数据（实际使用时替换为真实数据集）
+src_sentences = ["Hello, how are you?", "I love machine learning."]
+trg_sentences = ["Hallo, wie geht es dir?", "Ich liebe maschinelles Lernen."]
 
-class Decoder(nn.Module):
-    def __init__(self, output_dim, emb_dim, hid_dim, n_layers, dropout):
-        super().__init__()
-        self.output_dim = output_dim
-        self.embedding = nn.Embedding(output_dim, emb_dim)
-        self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
-        self.fc_out = nn.Linear(hid_dim, output_dim)
-        self.dropout = nn.Dropout(dropout)
+# 数据集和加载器
+dataset = TranslationDataset(src_sentences, trg_sentences)
+dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
-    def forward(self, input, hidden, cell):
-        # input: [batch_size]
-        input = input.unsqueeze(0)  # [1, batch_size]
-        embedded = self.dropout(self.embedding(input))
-        output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
-        prediction = self.fc_out(output.squeeze(0))
-        return prediction, hidden, cell
+# 模型
+enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
+dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+model = Seq2Seq(enc, dec, device).to(device)
 
+# 优化器和损失函数
+optimizer = optim.Adam(model.parameters())
+criterion = nn.CrossEntropyLoss(ignore_index=0)  # 忽略 padding
 
-class Seq2Seq(nn.Module):
-    def __init__(self, encoder, decoder, device):
-        super().__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-        self.device = device
+# 训练循环
+for epoch in range(N_EPOCHS):
+    model.train()
+    epoch_loss = 0
 
-    def forward(self, src, trg, teacher_forcing_ratio=0.5):
-        # src: [src_len, batch_size]
-        # trg: [trg_len, batch_size]
-        batch_size = trg.shape[1]
-        trg_len = trg.shape[0]
-        trg_vocab_size = self.decoder.output_dim
+    for src, trg in dataloader:
+        src, trg = src.to(device), trg.to(device)
 
-        outputs = torch.zeros(trg_len, batch_size, trg_vocab_size).to(self.device)
-        hidden, cell = self.encoder(src)
+        optimizer.zero_grad()
+        output = model(src, trg)
 
-        input = trg[0, :]  # <sos> token
+        output_dim = output.shape[-1]
+        output = output[1:].view(-1, output_dim)
+        trg = trg[1:].view(-1)
 
-        for t in range(1, trg_len):
-            output, hidden, cell = self.decoder(input, hidden, cell)
-            outputs[t] = output
-            teacher_force = random.random() < teacher_forcing_ratio
-            top1 = output.argmax(1)
-            input = trg[t] if teacher_force else top1
+        loss = criterion(output, trg)
+        loss.backward()
+        optimizer.step()
 
-        return outputs
+        epoch_loss += loss.item()
+
+    print(f'Epoch {epoch + 1}, Loss: {epoch_loss / len(dataloader):.4f}')
+
+# 保存模型
+torch.save(model.state_dict(), 'translation_model.pt')
