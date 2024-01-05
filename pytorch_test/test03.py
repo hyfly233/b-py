@@ -52,6 +52,8 @@ device = (
     else "cpu"
 )
 
+print(f"Using device: {device}")
+
 # 数据集和加载器
 dataset = SimpleDataset(src_sentences, trg_sentences, src_vocab, trg_vocab)
 dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, collate_fn=collate_fn)
@@ -89,4 +91,6 @@ for epoch in range(N_EPOCHS):
     print(f"Epoch {epoch + 1}, Loss: {epoch_loss / len(dataloader):.4f}")
 
 # 保存模型
-torch.save(model.state_dict(), "translation_model.pt")
+torch.save(src_vocab, "src_vocab.pth")
+torch.save(trg_vocab, "trg_vocab.pth")
+torch.save(model.state_dict(), "translation_model.pth")
