@@ -50,10 +50,12 @@ def simple_tokenizer(text):
 src_vocab = build_vocab(src_sentences, simple_tokenizer, min_freq=5, max_size=20000)
 trg_vocab = build_vocab(trg_sentences, simple_tokenizer, min_freq=5, max_size=20000)
 
-print("src_vocab size =", len(src_vocab), "trg_vocab size =", len(trg_vocab))
-
 INPUT_DIM = len(src_vocab)
 OUTPUT_DIM = len(trg_vocab)
+
+print("src_vocab size =", INPUT_DIM, "trg_vocab size =", OUTPUT_DIM)
+
+
 ENC_EMB_DIM = 256
 DEC_EMB_DIM = 256
 HID_DIM = 512
