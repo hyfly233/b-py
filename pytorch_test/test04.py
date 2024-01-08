@@ -12,15 +12,15 @@ from translation_model import Encoder, Decoder, Seq2Seq
 
 # 方法 A：从本地平行文本读入
 # src.txt, tgt.txt 每行一条，按行一一对应
-with open("data/src.txt", encoding="utf-8") as f:
-    src_sentences = [line.strip() for line in f if line.strip()]
-with open("data/tgt.txt", encoding="utf-8") as f:
-    trg_sentences = [line.strip() for line in f if line.strip()]
+# with open("data/src.txt", encoding="utf-8") as f:
+#     src_sentences = [line.strip() for line in f if line.strip()]
+# with open("data/tgt.txt", encoding="utf-8") as f:
+#     trg_sentences = [line.strip() for line in f if line.strip()]
 
 # 方法 B：直接用 WMT14 数据集（示例）
-# raw = load_dataset("wmt14", "de-en", split="train")
-# src_sentences = raw["en"]
-# trg_sentences = raw["de"]
+raw = load_dataset("wmt14", "de-en", split="train")
+src_sentences = raw["en"]
+trg_sentences = raw["de"]
 
 
 # 特殊符号
