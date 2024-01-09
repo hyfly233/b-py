@@ -3,6 +3,7 @@ from collections import Counter
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from datasets import load_dataset
 from torch.utils.data import DataLoader
 
 from dataset import SimpleDataset, collate_fn
