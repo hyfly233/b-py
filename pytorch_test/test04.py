@@ -1,27 +1,40 @@
+import os
+import pprint
 from collections import Counter
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from datasets import load_dataset
+from datasets import load_dataset, logging, DownloadConfig
 from torch.utils.data import DataLoader
 
 from dataset import SimpleDataset, collate_fn
 from translation_model import Encoder, Decoder, Seq2Seq
 
-# 1. 扩大语料：两种方式任选其一
+# 用 WMT14 数据集
+# 打开 INFO 日志，显示下载进度
+logging.set_verbosity_info()
 
-# 方法 A：从本地平行文本读入
-# src.txt, tgt.txt 每行一条，按行一一对应
-# with open("data/src.txt", encoding="utf-8") as f:
-#     src_sentences = [line.strip() for line in f if line.strip()]
-# with open("data/tgt.txt", encoding="utf-8") as f:
-#     trg_sentences = [line.strip() for line in f if line.strip()]
+# 2. 自定义缓存目录（默认是 ~/.cache/huggingface/datasets）
+cache_dir = os.path.expanduser("~/.cache/huggingface/datasets")
+download_config = DownloadConfig(
+    cache_dir=cache_dir,  # 改成你想要的路径
+    resume_download=True,
+)
 
-# 方法 B：直接用 WMT14 数据集（示例）
-raw = load_dataset("wmt14", "de-en", split="train")
-src_sentences = raw["en"]
-trg_sentences = raw["de"]
+raw_train = load_dataset(
+    "wmt14",
+    "de-en",
+    split="train",  # 只要 train
+    cache_dir=download_config.cache_dir,
+    download_config=download_config,
+)
+
+# 4. 查看缓存下的具体文件
+pprint.pprint(raw_train.cache_files)
+
+src_sentences = [ex["translation"]["en"] for ex in raw_train]
+trg_sentences = [ex["translation"]["de"] for ex in raw_train]
 
 
 # 特殊符号
@@ -48,8 +61,10 @@ def simple_tokenizer(text):
 
 
 # 真实数据集
-src_vocab = build_vocab(src_sentences, simple_tokenizer, min_freq=5, max_size=20000)
-trg_vocab = build_vocab(trg_sentences, simple_tokenizer, min_freq=5, max_size=20000)
+# max_size=20000
+max_size=5
+src_vocab = build_vocab(src_sentences, simple_tokenizer, min_freq=5, max_size=max_size)
+trg_vocab = build_vocab(trg_sentences, simple_tokenizer, min_freq=5, max_size=max_size)
 
 INPUT_DIM = len(src_vocab)
 OUTPUT_DIM = len(trg_vocab)

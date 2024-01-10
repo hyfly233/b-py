@@ -52,4 +52,5 @@ def translate(sentence: str, max_len: int = 50) -> str:
 
 
 # 5. 测试
-print(translate("Hello, how are you?"))
+print(translate("Hello"))
+# print(translate("Hello, how are you?"))
