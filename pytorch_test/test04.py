@@ -62,7 +62,7 @@ def simple_tokenizer(text):
 
 # 真实数据集
 # max_size=20000
-max_size=5
+max_size = 5
 src_vocab = build_vocab(src_sentences, simple_tokenizer, min_freq=5, max_size=max_size)
 trg_vocab = build_vocab(trg_sentences, simple_tokenizer, min_freq=5, max_size=max_size)
 
@@ -78,7 +78,7 @@ HID_DIM = 512
 N_LAYERS = 2
 ENC_DROPOUT = 0.5
 DEC_DROPOUT = 0.5
-BATCH_SIZE = 2
+BATCH_SIZE = 10
 N_EPOCHS = 10
 
 device = (
@@ -101,6 +101,8 @@ model = Seq2Seq(enc, dec, device).to(device)
 # 优化器和损失函数
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss(ignore_index=src_vocab["<pad>"])
+
+print("Model initialized, starting training...")
 
 # 训练循环
 for epoch in range(N_EPOCHS):
