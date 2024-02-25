@@ -21,7 +21,6 @@ dependencies = [
     "langchain-core>=0.3.79",
     "langchain-ollama>=0.3.10",
     "matplotlib>=3.10.3",
-    "mem0ai>=1.0.0",
     "mysql-connector-python>=9.3.0",
     "nuitka>=2.7.2",
     "numpy>=2.2.5",
