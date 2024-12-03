@@ -7,6 +7,7 @@ from pysnmp.proto.api import v2c  # backend is always SMIv2 compliant
 from pysnmp.proto.proxy import rfc2576
 
 '''
+https://github.com/pysnmp/pysnmp/blob/main/pysnmp/entity/rfc3413/cmdrsp.py
 参考 pysnmp.entity.rfc3413.cmdrsp
 '''
 

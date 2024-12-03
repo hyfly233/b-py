@@ -5,15 +5,10 @@ from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.entity import engine as entity_engine, config as entity_config
 from pysnmp.entity.rfc3413 import context as rfc3413_context
 
-from snmp_tool.demo.test_cmdrsp import GetOwCommandResponder
+from pysnmp_test.override_cmdrsp import GetOwCommandResponder
 
 
 # Main Function --------------------------
-async def testTask():
-    while True:
-        print("testTask running --------------- ")
-        await asyncio.sleep(3)
-
 
 def run_snmp_engine(snmpEngine):
     snmpEngine.transportDispatcher.jobStarted(1)
@@ -49,11 +44,10 @@ async def getMain():
 
 
 async def main():
-    test_task = asyncio.create_task(testTask())
     get_task = asyncio.create_task(getMain())
 
     # 等待所有任务完成
-    await asyncio.gather(test_task, get_task)
+    await asyncio.gather(get_task)
 
 
 if __name__ == '__main__':

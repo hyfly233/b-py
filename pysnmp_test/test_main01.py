@@ -7,6 +7,10 @@ from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.entity import engine, config
 from pysnmp.entity.rfc3413 import context, cmdrsp
 
+'''
+查看 https://github.com/pysnmp/pysnmp/blob/main/examples/v3arch/asyncio/agent/cmdrsp/multiple-usm-users.py
+'''
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
 
 # 全局变量
@@ -27,8 +31,13 @@ async def task02():
     config.addTransport(snmpEngine, udp.domainName, udp.UdpTransport().openServerMode(('0.0.0.0', 4161)))
     config.addV1System(snmpEngine, "my-area", "public")
     config.addVacmUser(snmpEngine, 1, "my-area", "noAuthNoPriv", (1, 3, 6, 1, 2, 1), (1, 3, 6, 1, 2, 1))
+
     snmpContext = context.SnmpContext(snmpEngine)
+
     cmdrsp.GetCommandResponder(snmpEngine, snmpContext)
+    cmdrsp.SetCommandResponder(snmpEngine, snmpContext)
+    cmdrsp.NextCommandResponder(snmpEngine, snmpContext)
+    cmdrsp.BulkCommandResponder(snmpEngine, snmpContext)
 
     try:
         loop.run_forever()

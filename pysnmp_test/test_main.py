@@ -7,6 +7,7 @@ from pysnmp.entity import engine, config
 from pysnmp.entity.rfc3413 import context, cmdrsp
 
 '''
+查看 https://github.com/pysnmp/pysnmp/blob/main/examples/v3arch/asyncore/agent/cmdrsp/listen-on-ipv4-and-ipv6-interfaces.py
 使用 kill 无法完全退出进程，只能使用 kill -9 强制退出
 '''
 

@@ -5,6 +5,10 @@ from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.entity import engine, config
 from pysnmp.entity.rfc3413 import context, cmdrsp
 
+'''
+查看 https://github.com/pysnmp/pysnmp/blob/main/examples/v3arch/asyncio/agent/cmdrsp/multiple-usm-users.py
+'''
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
 
 # 全局变量
