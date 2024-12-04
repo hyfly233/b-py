@@ -20,6 +20,10 @@ with Command Generators - UDP over IPv4 and UDP over IPv6.
 
 
 https://github.com/pysnmp/pysnmp/blob/main/examples/v1arch/asyncore/agent/cmdrsp/implementing-scalar-mib-objects-over-ipv4-and-ipv6.py
+
+snmpget -v2c -c public 127.0.0.1:4161 .1.3.6.1.2.1.1.3.0
+snmpget -v2c -c public 127.0.0.1:4161 .1.3.6.1.2.1.1.3.0 .1.3.6.1.2.1.1.1.0
+snmpget -v1 -c public 127.0.0.1:4161 .1.3.6.1.2.1.1.3.0 .1.3.6.1.2.1.1.1.0
 """  #
 import bisect
 import time
@@ -28,6 +32,7 @@ from pyasn1.codec.ber import encoder, decoder
 from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.carrier.asyncore.dispatch import AsyncoreDispatcher
 from pysnmp.proto import api
+from pysnmp.proto.api import v2c
 
 
 class SysDescr:
@@ -80,7 +85,61 @@ class Uptime:
         return self.name >= other
 
     def __call__(self, protoVer):
-        return api.protoModules[protoVer].TimeTicks((time.time() - self.birthday) * 100)
+        # return api.protoModules[protoVer].TimeTicks((time.time() - self.birthday) * 100)
+
+        # return api.protoModules[protoVer].Integer(
+        #     -123
+        # )
+
+        # module 'pysnmp.proto.api.v1' has no attribute 'Integer32'
+        # return api.protoModules[protoVer].Integer32(
+        #     123
+        # )
+
+        # module 'pysnmp.proto.api.v1' has no attribute 'Unsigned32'
+        # return api.protoModules[protoVer].Unsigned32(
+        #     32131
+        # )
+
+        # return api.protoModules[protoVer].OctetString(
+        #     "xxxxx"
+        # )
+
+        # return api.protoModules[protoVer].ObjectIdentifier(
+        #     ".1.3.6.33.33.2.1"
+        # )
+
+        # module 'pysnmp.proto.api.v1' has no attribute 'Bits'
+        return api.protoModules[protoVer].Bits(
+            "xxxxx"
+        )
+
+        # return api.protoModules[protoVer].IpAddress(
+        #     "127.0.0.1"
+        # )
+
+        # module 'pysnmp.proto.api.v1' has no attribute 'Counter32'
+        # return api.protoModules[protoVer].Counter32(
+        #     12345
+        # )
+
+        # module 'pysnmp.proto.api.v1' has no attribute 'Counter64'
+        # return api.protoModules[protoVer].Counter64(
+        #     123222
+        # )
+
+        # module 'pysnmp.proto.api.v1' has no attribute 'Gauge32'
+        # return api.protoModules[protoVer].Gauge32(
+        #     67890
+        # )
+
+        # return api.protoModules[protoVer].Opaque(
+        #     '123'
+        # )
+
+        # return api.protoModules[protoVer].Null(
+        #     ''
+        # )
 
 
 mibInstr = (SysDescr(), Uptime())  # sorted by object name
@@ -103,13 +162,19 @@ def cbFun(transportDispatcher, transportDomain, transportAddress, wholeMsg):
             asn1Spec=pMod.Message(),
         )
 
-        print(f"reqMsg: {reqMsg}")
+        # print(f"reqMsg: {reqMsg}")
 
         print(f"-------------------")
 
         rspMsg = pMod.apiMessage.getResponse(reqMsg)
         rspPDU = pMod.apiMessage.getPDU(rspMsg)
         reqPDU = pMod.apiMessage.getPDU(reqMsg)
+
+        requestId = v2c.apiPDU.getRequestID(rspPDU)
+        print(f"requestId: {requestId} ---------------")
+
+        print(f"-------------------")
+
         varBinds = []
         pendingErrors = []
         errorIndex = 0
@@ -149,7 +214,18 @@ def cbFun(transportDispatcher, transportDomain, transportAddress, wholeMsg):
         for f, i in pendingErrors:
             f(rspPDU, i)
 
-        print(f"rspMsg: {rspMsg}")
+        for varBind in varBinds:  # SNMP response contents
+            oid = varBind[0]
+            val = varBind[1]
+
+            print(f"oid type: {type(oid)}, val type: {type(val)}")
+
+            print(f"oid: {oid}, val: {str(val)}")
+
+        print(f"-------------------")
+
+        # print(f"rspMsg: {rspMsg}")
+
         transportDispatcher.sendMessage(
             encoder.encode(rspMsg), transportDomain, transportAddress
         )
@@ -161,7 +237,7 @@ transportDispatcher.registerRecvCbFun(cbFun)
 
 # UDP/IPv4
 transportDispatcher.registerTransport(
-    udp.domainName, udp.UdpSocketTransport().openServerMode(("localhost", 4161))
+    udp.domainName, udp.UdpSocketTransport().openServerMode(("0.0.0.0", 4161))
 )
 
 transportDispatcher.jobStarted(1)
@@ -169,6 +245,7 @@ transportDispatcher.jobStarted(1)
 try:
     # Dispatcher will never finish as job#1 never reaches zero
     transportDispatcher.runDispatcher()
-except:
+except Exception as e:
+    # todo
     transportDispatcher.closeDispatcher()
     raise
