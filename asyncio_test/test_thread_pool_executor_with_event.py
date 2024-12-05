@@ -6,7 +6,7 @@ import time
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
 
-# 创建一个全局的 Event 对象，用于通知线程停止  ？？？？？？？？？？？
+# 创建一个全局的 Event 对象，用于通知线程停止 ??????????????????
 stop_event = threading.Event()
 
 
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
+        # 没有打印 ??????????????????
         logging.info("Program interrupted and exiting...")
         # 设置 stop_event，通知所有任务停止
         stop_event.set()
