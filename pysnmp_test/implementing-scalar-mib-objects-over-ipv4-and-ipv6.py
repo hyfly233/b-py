@@ -33,10 +33,13 @@ from pysnmp.carrier.asyncore.dgram import udp
 from pysnmp.carrier.asyncore.dispatch import AsyncoreDispatcher
 from pysnmp.proto import api
 from pysnmp.proto.api import v2c
+from pysnmp.proto.rfc1902 import ObjectIdentifier
 
 
 class SysDescr:
     name = (1, 3, 6, 1, 2, 1, 1, 1, 0)
+
+    # name = '.1.3.6.1.2.1.1.1.0'  # No such instance
 
     def __eq__(self, other):
         return self.name == other
@@ -142,7 +145,68 @@ class Uptime:
         # )
 
 
-mibInstr = (SysDescr(), Uptime())  # sorted by object name
+class CustomOid(object):
+    def __init__(self, oid: str, dataType: str, value: str):
+        oid_obj = ObjectIdentifier(oid)
+        oid_tuple = tuple(oid_obj)
+
+        self.name = oid_tuple
+        self.dataType = dataType
+        self.value = value
+
+    def __eq__(self, other):
+        return self.name == other
+
+    def __ne__(self, other):
+        return self.name != other
+
+    def __lt__(self, other):
+        return self.name < other
+
+    def __le__(self, other):
+        return self.name <= other
+
+    def __gt__(self, other):
+        return self.name > other
+
+    def __ge__(self, other):
+        return self.name >= other
+
+    def __call__(self, protoVer):
+        pm = api.protoModules[protoVer]
+
+        if self.dataType == "int":
+            return pm.Integer(int(self.value))
+        elif self.dataType == "integer32":
+            return pm.Integer32(int(self.value))
+        elif self.dataType == "Uinteger32":
+            return pm.Unsigned32(int(self.value))
+        elif self.dataType == "OctetString":
+            return pm.OctetString(self.value)
+        elif self.dataType == "ObjectIdentifier":
+            return pm.ObjectIdentifier(self.value)
+        elif self.dataType == "BitString":
+            return pm.Bits(self.value)
+        elif self.dataType == "IPAddress":
+            return pm.IpAddress(self.value)
+        elif self.dataType == "Counter32":
+            return pm.Counter32(int(self.value))
+        elif self.dataType == "Counter64":
+            return pm.Counter64(int(self.value))
+        elif self.dataType == "Gauge32":
+            return pm.Gauge32(int(self.value))
+        elif self.dataType == "TimeTicks":
+            return pm.TimeTicks(int(self.value))
+        elif self.dataType == "Opaque":
+            return pm.Opaque(self.value)
+        elif self.dataType == "Null":
+            return pm.Null("")
+        else:
+            return pm.OctetString("Unknown Type")
+
+
+mibInstr = (
+    SysDescr(), Uptime(), CustomOid(".1.3.6.1.2.1.1.7.0", "OctetString", "66666"))  # sorted by object name
 
 mibInstrIdx = {}
 for mibVar in mibInstr:
