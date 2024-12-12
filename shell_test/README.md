@@ -16,7 +16,6 @@ Start.sh 的 start() 在获取 pid 后会将 pid 写入到 pid 文件中，但�
        
        501 41861     1   0  5:34PM ttys007    0:00.09 ./../dist/test
        501 41863 41861   0  5:34PM ttys007    0:00.48 ./../dist/test
-       501 41877 40558   0  5:34PM ttys007    0:00.00 grep test
        
        lsof -i tcp:23333
        
@@ -33,7 +32,6 @@ Start.sh 的 start() 在获取 pid 后会将 pid 写入到 pid 文件中，但�
        ps -ef | grep test
        
        501 41863     1   0  5:34PM ttys007    0:01.08 ./../dist/test
-       501 42375 40558   0  5:37PM ttys007    0:00.00 grep test
        
        lsof -i tcp:23333
        
@@ -49,6 +47,29 @@ Start.sh 的 start() 在获取 pid 后会将 pid 写入到 pid 文件中，但�
     + 只能通过 kill 命令杀死进程 41863
 
 2. 使用 `echo $PPID > "$PID_FILE"` 时
+    + pid 文件中的 pid 不是 test 应用的 pid，如 pid 文件中的 pid 为 40558
+      ```text
+      ps -ef | grep 40558
+      
+      501 40558 28143   0  5:29PM ttys007    0:00.19 /bin/zsh --login -i
+      
+      ps -ef | grep test
+      
+      501 45252     1   0  5:49PM ttys007    0:00.08 ./../dist/test
+      501 45256 45252   0  5:49PM ttys007    0:01.12 ./../dist/test
+      ```
+
+3. 使用 `echo $$ > "$PID_FILE"` 时
+    + pid 文件中的 pid 不是 test 应用的 pid，如 pid 文件中的 pid 为 46092
+      ```text
+      ps -ef | grep 46092
+      # 无输出
+      
+      ps -ef | grep test
+      
+      501 46094     1   0  5:55PM ttys007    0:00.10 ./../dist/test
+      501 46097 46094   0  5:55PM ttys007    0:00.62 ./../dist/test
+      ```
 
 ## 脚本执行
 

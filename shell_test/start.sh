@@ -54,8 +54,11 @@ start() {
     # 后台运行的最后一个进程的进程ID号
     echo $! > "$PID_FILE"
 
-    # 父进程的进程ID号
+    # 当前脚本或进程（start.sh）的父进程 ID
 #    echo $PPID > "$PID_FILE"
+
+    # 当前脚本或进程（start.sh）的进程 ID
+#    echo $$ > "$PID_FILE"
 
     echo "Application started with PID $(cat $PID_FILE)."
 }
