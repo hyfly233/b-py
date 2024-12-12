@@ -8,3 +8,10 @@
 + uv pip freeze > requirements.txt  # 依赖保存到文件
 + uv run main.py
 + uv lock --upgrade-package requests
+
+## 打包
+```shell
+pyinstaller -F --clean test.py
+
+pyinstaller -F test.py
+```

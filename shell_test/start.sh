@@ -2,8 +2,6 @@
 
 PID_FILE=""
 EXEC_FILE=""
-EXEC_ARGS=""
-BOOLEAN_MODE=false
 
 # 解析命令行参数
 ACTION="$1"
@@ -21,15 +19,6 @@ while [[ $# -gt 0 ]]; do
         EXEC_FILE="$2"
         shift # past argument
         shift # past value
-        ;;
-        -arg|--arguments)
-        EXEC_ARGS="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        -b|--boolean)
-        BOOLEAN_MODE=true
-        shift # past argument
         ;;
         *)
         shift # unknown option
@@ -59,9 +48,15 @@ start() {
         exit 1
     fi
 
-    echo "Starting application with script: $EXEC_FILE and arguments: $EXEC_ARGS"
-    nohup "$EXEC_FILE" $EXEC_ARGS > "$PID_DIR/app.log" 2>&1 &
+    echo "Starting application with script: $EXEC_FILE"
+    nohup "$EXEC_FILE" > "$PID_DIR/app.log" 2>&1 &
+
+    # 后台运行的最后一个进程的进程ID号
     echo $! > "$PID_FILE"
+
+    # 父进程的进程ID号
+#    echo $PPID > "$PID_FILE"
+
     echo "Application started with PID $(cat $PID_FILE)."
 }
 
@@ -94,30 +89,15 @@ status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
 
-        if [ "$BOOLEAN_MODE" = false ]; then
-            if ps -p $PID > /dev/null; then
-                echo "Application is running with PID $PID."
-            else
-                # 进程被异常中断，pid 文件未被清理
-                rm "$PID_FILE"
-                echo "Application is not running, but PID file exists."
-            fi
+        if ps -p $PID > /dev/null; then
+            echo "Application is running with PID $PID."
         else
-            if ps -p $PID > /dev/null; then
-                echo "true"
-            else
-                # 进程被异常中断，pid 文件未被清理
-                rm "$PID_FILE"
-                echo "false"
-            fi
+            # 进程被异常中断，pid 文件未被清理
+            rm "$PID_FILE"
+            echo "Application is not running, but PID file exists."
         fi
-
     else
-        if [ "$BOOLEAN_MODE" = true ]; then
-            echo "false"
-        else
             echo "Application is not running."
-        fi
     fi
 }
 
@@ -132,7 +112,7 @@ case "$ACTION" in
         status
         ;;
     *)
-        echo "Usage: $0 {start|stop|status} -p <pid_file> -s <exec_file> -arg <exec_args>"
+        echo "Usage: $0 {start|stop|status} -p <pid_file> -s <exec_file>"
         exit 1
         ;;
 esac
