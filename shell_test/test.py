@@ -42,6 +42,7 @@ def main():
 
 if __name__ == "__main__":
     try:
+        logging.info(f"main pid: {os.getpid()} ppid: {os.getppid()}")
         main()
     except KeyboardInterrupt:
         logging.info("Program interrupted and exiting...")

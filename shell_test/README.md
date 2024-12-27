@@ -90,3 +90,8 @@ Start.sh 的 start() 在获取 pid 后会将 pid 写入到 pid 文件中，但�
 ```shell
 ./start.sh status -p ./test.pid
 ```
+
+## 测试结果
+https://github.com/muziing/pyinstaller-docs-zh-cn/blob/main/doc-zh/Markdown/operating-mode.md
+
+使用 pyinstaller 打包的程序，在启动时，会有两个进程，一个是 PyInstaller bootloader，一个是 Python 程序本身。捆绑程序总是在 PyInstaller bootloader（引导加载程序）中开始执行，PyInstaller bootloader 是当前活动平台（Windows、GNU/Linux、macOS 等）下的二进制可执行程序。当用户启动你的程序时，其实就是在运行 bootloader。Bootloader 会创建一个临时 Python 环境，然后执行对应的脚本。
