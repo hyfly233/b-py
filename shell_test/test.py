@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 
 import uvicorn
@@ -17,8 +18,8 @@ def start_fast_api(httpPort: int):
     )
 
     @router.get("/getPort")
-    async def getPort():
-        logging.info(f"getPort: {httpPort}")
+    def getPort():
+        logging.info(f"getPort: {httpPort} pid: {os.getgid()} ppid: {os.getppid()} tid: {threading.get_ident()}")
         return httpPort
 
     app.include_router(router)

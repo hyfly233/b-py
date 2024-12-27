@@ -1,8 +1,11 @@
 import asyncio
 import logging
+import os
 
 import uvicorn
 from fastapi import FastAPI, APIRouter
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(asctime)s - %(filename)s:%(lineno)d - %(message)s')
 
 
 async def start_fast_api(httpPort: int):
@@ -16,7 +19,7 @@ async def start_fast_api(httpPort: int):
 
     @router.get("/getPort")
     async def getPort():
-        logging.info(f"getPort: {httpPort}")
+        logging.info(f"getPort: {httpPort} pid: {os.getgid()} ppid: {os.getppid()}")
         return httpPort
 
     app.include_router(router)
