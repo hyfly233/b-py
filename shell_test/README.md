@@ -1,11 +1,14 @@
-## 打包程序
+
+## pyinstaller
+
+### 打包程序
 
 ```shell
 cd ..
 pyinstaller -F ./shell_test/test.py
 ```
 
-## Start.sh
+### Start.sh
 
 Start.sh 的 start() 在获取 pid 后会将 pid 写入到 pid 文件中，但在多线程中，pid 获取并不准确
 
@@ -71,7 +74,7 @@ Start.sh 的 start() 在获取 pid 后会将 pid 写入到 pid 文件中，但�
       501 46097 46094   0  5:55PM ttys007    0:00.62 ./../dist/test
       ```
 
-## 脚本执行
+### 脚本执行
 
 启动脚本
 
@@ -91,7 +94,11 @@ Start.sh 的 start() 在获取 pid 后会将 pid 写入到 pid 文件中，但�
 ./start.sh status -p ./test.pid
 ```
 
-## 测试结果
+### 测试结果
 https://github.com/muziing/pyinstaller-docs-zh-cn/blob/main/doc-zh/Markdown/operating-mode.md
 
 使用 pyinstaller 打包的程序，在启动时，会有两个进程，一个是 PyInstaller bootloader，一个是 Python 程序本身。PyInstaller 打包的捆绑程序总是在 PyInstaller bootloader（引导加载程序）中开始执行。当启动程序时，其实就是在运行 Bootloader。Bootloader 会创建一个临时 Python 环境，然后执行对应的脚本。
+
+## nuitka
+
+
