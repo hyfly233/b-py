@@ -102,7 +102,7 @@ https://github.com/muziing/pyinstaller-docs-zh-cn/blob/main/doc-zh/Markdown/oper
 ## nuitka
 
 ```shell
-nuitka --standalone --onefile --output-dir=./dist ./shell_test/test.py
+python -m nuitka --standalone --onefile --output-dir=./dist ./shell_test/test.py
 ```
 
 ```text
@@ -112,3 +112,7 @@ ps -ef | grep test.bin
   501  3740  3737   0  4:25PM ttys004    0:00.54 /Users/flyhy/workspace/hyfly233/py/b-py/dist/test.bin
   501  4367  3786   0  4:26PM ttys007    0:00.00 grep test.bin
 ```
+
+## PyOxidizer
+
+todo
