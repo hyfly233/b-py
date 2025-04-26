@@ -17,4 +17,4 @@ converter = DocumentConverter(format_options={
 result = converter.convert("./pdf/docling_test_pdf.pdf")
 doc = result.document
 
-print(doc)
+print(doc.export_to_dict())
