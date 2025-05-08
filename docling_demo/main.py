@@ -11,7 +11,10 @@ from docling.datamodel.pipeline_options import (
     AcceleratorOptions,
     ApiVlmOptions,
     ResponseFormat,
-    PdfPipelineOptions, TableStructureOptions, EasyOcrOptions,
+    PdfPipelineOptions,
+    TableStructureOptions,
+    EasyOcrOptions,
+    OcrMacOptions,
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption, WordFormatOption
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
@@ -23,7 +26,7 @@ from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 # SOURCE = "./pdf/2504.20485v1-代码.pdf"
 # SOURCE = "./pdf/Doc3.pdf"
 
-SOURCE = "./docx/11-单元格斜线.docx"
+# SOURCE = "./docx/11-单元格斜线.docx"
 # SOURCE = "./pdf/11-单元格斜线.pdf"
 
 # SOURCE = "./docx/15-公式.docx"
@@ -35,6 +38,7 @@ SOURCE = "./docx/11-单元格斜线.docx"
 # SOURCE = "./docx/19-复杂表格.docx"
 # SOURCE = "./pdf/19-复杂表格.pdf"
 
+SOURCE = "/Users/flyhy/Downloads/表格测试样例/14-测试用例.pdf"
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
@@ -92,8 +96,8 @@ def main():
             cuda_use_flash_attention2=True,
         )
     elif torch.mps.is_available():
-        # pdf_pipeline_options.ocr_options = OcrMacOptions()
-        pdf_pipeline_options.ocr_options = EasyOcrOptions()
+        pdf_pipeline_options.ocr_options = OcrMacOptions()
+        # pdf_pipeline_options.ocr_options = EasyOcrOptions()
         pdf_pipeline_options.accelerator_options = AcceleratorOptions(
             num_threads=cpu_cores,
             device=AcceleratorDevice.MPS,
