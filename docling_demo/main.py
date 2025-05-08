@@ -21,24 +21,11 @@ from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 
 # from docling.pipeline.vlm_pipeline import VlmPipeline
 
-# SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
+SOURCE = "./pdf/2206.01062v1-表格图片.pdf"
 # SOURCE = "./pdf/2503.00004v1-大量公式.pdf"
 # SOURCE = "./pdf/2504.20485v1-代码.pdf"
 # SOURCE = "./pdf/Doc3.pdf"
 
-# SOURCE = "./docx/11-单元格斜线.docx"
-# SOURCE = "./pdf/11-单元格斜线.pdf"
-
-# SOURCE = "./docx/15-公式.docx"
-# SOURCE = "./pdf/15-公式.pdf"
-
-# SOURCE = "./docx/18-单元格内容换行.docx"
-# SOURCE = "./pdf/18-单元格内容换行.pdf"
-
-# SOURCE = "./docx/19-复杂表格.docx"
-# SOURCE = "./pdf/19-复杂表格.pdf"
-
-SOURCE = "/Users/flyhy/Downloads/表格测试样例/14-测试用例.pdf"
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
